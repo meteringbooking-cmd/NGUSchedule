@@ -24,10 +24,24 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
 
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            gap: 20px;
+        }
+
+        .header-logo {
+            height: 60px;
+            width: auto;
+            border-radius: 50%;
+        }
+
         .header h1 {
             text-align: center;
-            margin-bottom: 20px;
             font-size: 2em;
+            margin: 0;
         }
 
         .filters {
@@ -270,6 +284,15 @@
         }
 
         @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .header-logo {
+                height: 40px;
+            }
+            
             .main-content {
                 flex-direction: column;
                 padding: 10px;
@@ -288,7 +311,11 @@
 </head>
 <body>
     <div class="header">
-        <h1>Job Scheduling Dashboard</h1>
+        <div class="header-content">
+            <img src="https://www.dropbox.com/scl/fi/4eilt1ka4obatkaif4ksg/Screenshot-2025-06-11-132304.png?rlkey=1puz3m5i205n2t4q9n6srfq56&st=00ujjvmz&dl=1" alt="Company Screenshot" class="header-logo">
+            <h1>Job Scheduling Dashboard</h1>
+            <img src="https://www.dropbox.com/scl/fi/67vmxu3kngvgkm1mf5tcp/Stark.jpg?rlkey=5gz9fhspn3t1aiu03ksob3r2c&st=8ppqfpwr&dl=1" alt="Stark Logo" class="header-logo">
+        </div>
         <div class="filters">
             <div class="filter-group">
                 <label for="dateFilter">Select Date:</label>
