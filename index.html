@@ -359,9 +359,16 @@
         let currentJobCard = null;
 
         async function init() {
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('dateFilter').value = today;
-            selectedDate = formatDateForComparison(today);
+            const today = new Date();
+            const todayString = today.toISOString().split('T')[0];
+            document.getElementById('dateFilter').value = todayString;
+            
+            // Set selected date in the format we'll use for comparison
+            selectedDate = {
+                day: today.getDate(),
+                month: today.getMonth() + 1, // getMonth() returns 0-11, we need 1-12
+                year: today.getFullYear()
+            };
             
             await loadJobs();
             setupEventListeners();
@@ -382,7 +389,25 @@
         async function loadJobs() {
             try {
                 const response = await fetch(`${API_URL}?action=getJobs`);
-                allJobs = await response.json();
+                const rawJobs = await response.json();
+                
+                // Process jobs to handle the new date format
+                allJobs = rawJobs.map(job => {
+                    // Create a combined date object for easier comparison
+                    const day = parseInt(job.Day) || 0;
+                    const month = parseInt(job.Month) || 0;
+                    const year = parseInt(job.Year) || 0;
+                    
+                    return {
+                        ...job,
+                        dateComponents: { day, month, year },
+                        // Create a display date string
+                        displayDate: day && month && year ? `${day}/${month}/${year}` : 'No date'
+                    };
+                });
+                
+                console.log('Loaded jobs:', allJobs.length);
+                console.log('Sample job:', allJobs[0]);
                 
                 populateEngineersFilter();
                 populateEngineersListAndFilterJobs();
@@ -450,10 +475,17 @@
 
         function filterJobs() {
             return allJobs.filter(job => {
-                const jobDate = job.Date;
+                const jobDate = job.dateComponents;
                 const jobEngineer = job.Engineer;
                 
-                const dateMatch = !selectedDate || jobDate === selectedDate;
+                // Date matching - compare day, month, year separately
+                let dateMatch = true;
+                if (selectedDate && selectedDate.day && selectedDate.month && selectedDate.year) {
+                    dateMatch = jobDate.day === selectedDate.day && 
+                               jobDate.month === selectedDate.month && 
+                               jobDate.year === selectedDate.year;
+                }
+                
                 const engineerMatch = !selectedEngineer || jobEngineer === selectedEngineer;
                 
                 return dateMatch && engineerMatch;
@@ -516,6 +548,7 @@
                         <div class="job-detail"><strong>Address:</strong> ${job.Address || 'N/A'}</div>
                         <div class="job-detail"><strong>Postcode:</strong> ${job['Job Details : Postcode'] || 'N/A'}</div>
                         <div class="job-detail"><strong>Time:</strong> ${job.Time || 'N/A'}</div>
+                        <div class="job-detail"><strong>Date:</strong> ${job.displayDate}</div>
                         <div class="job-detail"><strong>Engineer:</strong> ${job.Engineer || 'Unassigned'}</div>
                     </div>
                 </div>
@@ -591,19 +624,23 @@
         }
 
         function handleDateChange(e) {
-            selectedDate = formatDateForComparison(e.target.value);
+            const dateValue = e.target.value;
+            if (dateValue) {
+                const date = new Date(dateValue);
+                selectedDate = {
+                    day: date.getDate(),
+                    month: date.getMonth() + 1,
+                    year: date.getFullYear()
+                };
+            } else {
+                selectedDate = '';
+            }
             populateEngineersListAndFilterJobs();
         }
 
         function handleEngineerChange(e) {
             selectedEngineer = e.target.value;
             populateEngineersListAndFilterJobs();
-        }
-
-        function formatDateForComparison(dateString) {
-            if (!dateString) return '';
-            const date = new Date(dateString);
-            return date.toLocaleDateString('en-GB');
         }
 
         window.addEventListener('load', init);
