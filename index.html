@@ -363,8 +363,12 @@
             const todayString = today.toISOString().split('T')[0];
             document.getElementById('dateFilter').value = todayString;
             
-            // Start with no date filter so we can see all jobs initially
-            selectedDate = '';
+            // Set selected date to today for initial load
+            selectedDate = {
+                day: today.getDate(),
+                month: today.getMonth() + 1, // getMonth() returns 0-11, we need 1-12
+                year: today.getFullYear()
+            };
             
             await loadJobs();
             setupEventListeners();
