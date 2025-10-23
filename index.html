@@ -3,96 +3,240 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Job Dashboard</title>
+    <title>Job Scheduling Dashboard</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
+        * {
             margin: 0;
             padding: 0;
-            background-color: #f4f7f9;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
             color: #333;
         }
 
+        /* --- Existing Styles (omitted for brevity, assume they are still here) --- */
+
         .header {
-            background-color: #007bff;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 15px 20px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            justify-content: center;
+            margin-bottom: 20px;
+            gap: 20px;
+        }
+
+        .header-logo {
+            height: 60px;
+            width: auto;
+            border-radius: 50%;
         }
 
         .header h1 {
+            text-align: center;
+            font-size: 2em;
             margin: 0;
-            font-size: 1.5em;
-        }
-
-        .refresh-status {
-            font-size: 0.9em;
-            display: flex;
-            align-items: center;
-        }
-
-        .refresh-status span {
-            margin-left: 10px;
-        }
-
-        .container {
-            padding: 20px;
         }
 
         .filters {
             display: flex;
+            justify-content: center;
             gap: 20px;
-            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
             align-items: center;
-            background-color: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
         }
 
         .filter-group label {
-            display: block;
             margin-bottom: 5px;
-            font-weight: bold;
-            font-size: 0.9em;
-            color: #555;
+            font-weight: 600;
         }
 
-        .filter-group select,
-        .filter-group input {
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 1em;
-            width: 100%;
-            box-sizing: border-box;
+        select, input[type="date"] {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            font-size: 16px;
             min-width: 150px;
         }
 
-        #jobs-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
+        .refresh-control {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
         }
 
-        .job-card {
-            background-color: white;
+        .refresh-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: white;
+            padding: 10px 15px;
             border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .refresh-toggle input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            border-left: 5px solid;
+        }
+
+        .refresh-toggle label {
+            cursor: pointer;
+            margin: 0;
+            color: #333;
+        }
+
+        .refresh-status {
+            font-size: 0.85em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: flex;
+            padding: 20px;
+            gap: 20px;
+            min-height: calc(100vh - 140px);
+        }
+
+        .engineers-sidebar {
+            width: 200px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            padding: 20px;
+            height: fit-content;
+        }
+
+        .engineers-sidebar h3 {
+            margin-bottom: 15px;
+            color: #667eea;
+            font-size: 1.2em;
+        }
+
+        .engineer-item {
+            padding: 10px;
+            margin-bottom: 8px;
+            background: #f8f9ff;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 4px solid #667eea;
+        }
+
+        .engineer-item:hover {
+            background: #e8ecff;
+            transform: translateX(5px);
+        }
+
+        .engineer-item.selected {
+            background: #667eea;
+            color: white;
+        }
+        
+        .jobs-area {
+            flex: 1;
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            padding-bottom: 20px;
+        }
+        
+        .engineer-column {
+            min-width: 450px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             display: flex;
             flex-direction: column;
         }
 
+        .engineer-column h3 {
+            background: linear-gradient(135deg, #74b9ff 0%, #a29bfe 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 12px 12px 0 0;
+            margin: 0;
+            font-size: 1.1em;
+            text-align: center;
+        }
+        
+        .engineer-job-sections {
+            display: flex;
+            flex-grow: 1;
+        }
+        
+        .time-section {
+            flex: 1;
+            padding: 15px;
+        }
+
+        .time-section h4 {
+            color: #636e72;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .jobs-container {
+            flex-grow: 1;
+        }
+
+        .job-card {
+            background: white;
+            border: 2px solid #e0e6ed;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
         .job-card:hover {
             transform: translateY(-3px);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+
+        .job-card.on-route {
+            border-color: #fdcb6e;
+            background: linear-gradient(135deg, #fff9e6 0%, #fef5d3 100%);
+        }
+
+        .job-card.in-progress {
+            border-color: #74b9ff;
+            background: linear-gradient(135deg, #e6f3ff 0%, #d1ecff 100%);
+        }
+
+        .job-card.completed {
+            border-color: #00b894;
+            background: linear-gradient(135deg, #e6fff9 0%, #d1ffed 100%);
+        }
+
+        .job-card.cancelled {
+            border-color: #636e72;
+            background: linear-gradient(135deg, #f1f2f6 0%, #e8eaed 100%);
+        }
+
+        .job-card.aborted {
+            border-color: #e84393;
+            background: linear-gradient(135deg, #ffe6f1 0%, #ffd3e8 100%);
         }
 
         .job-header {
@@ -100,287 +244,326 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 10px;
-            padding-bottom: 5px;
-            border-bottom: 1px solid #eee;
         }
 
         .job-ref {
-            font-size: 1.2em;
             font-weight: bold;
-            color: #007bff;
+            font-size: 1.1em;
+            color: #2d3436;
         }
 
         .job-status {
-            padding: 3px 8px;
-            border-radius: 4px;
+            padding: 4px 8px;
+            border-radius: 20px;
             font-size: 0.8em;
-            font-weight: bold;
-            color: white;
+            font-weight: 600;
             text-transform: uppercase;
         }
-        
-        /* Status Colors */
-        .new { background-color: #007bff; border-color: #007bff; }
-        .in-progress { background-color: #ffc107; border-color: #ffc107; color: #333; }
-        .on-hold { background-color: #6c757d; border-color: #6c757d; }
-        .complete { background-color: #28a745; border-color: #28a745; }
-        .cancelled { background-color: #dc3545; border-color: #dc3545; }
 
-        /* Job Card Border Colors */
-        .job-card.new { border-left-color: #007bff; }
-        .job-card.in-progress { border-left-color: #ffc107; }
-        .job-card.on-hold { border-left-color: #6c757d; }
-        .job-card.complete { border-left-color: #28a745; }
-        .job-card.cancelled { border-left-color: #dc3545; }
+        .job-status.on-route { background: #fdcb6e; color: #2d3436; }
+        .job-status.in-progress { background: #74b9ff; color: white; }
+        .job-status.completed { background: #00b894; color: white; }
+        .job-status.cancelled { background: #636e72; color: white; }
+        .job-status.aborted { background: #e84393; color: white; }
 
-
-        .job-details p {
-            margin: 5px 0;
-            font-size: 0.95em;
+        .job-details {
+            margin-bottom: 10px;
         }
 
-        .job-details strong {
-            display: inline-block;
-            width: 70px;
-            font-weight: 600;
-            color: #555;
-        }
-
-        .no-jobs {
-            grid-column: 1 / -1;
-            text-align: center;
-            padding: 50px;
-            font-size: 1.2em;
-            color: #6c757d;
-        }
-
-        /* Status Menu (Context Menu) */
-        #statusMenu {
-            position: absolute;
-            background-color: white;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-            z-index: 1000;
-            display: none;
-            min-width: 150px;
-            padding: 5px 0;
-        }
-
-        .menu-heading {
-            font-weight: bold;
-            padding: 5px 15px;
-            font-size: 0.8em;
-            color: #6c757d;
-            border-bottom: 1px solid #eee;
+        .job-detail {
             margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+
+        .job-detail strong {
+            color: #2d3436;
+        }
+
+        .status-menu {
+            position: absolute;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            padding: 10px;
+            z-index: 1000;
+            border: 1px solid #e0e6ed;
+            /* Added CSS for better differentiation */
+            min-width: 200px; 
+        }
+
+        .menu-divider {
+            height: 1px;
+            background-color: #e0e6ed;
+            margin: 5px 0;
         }
 
         .status-option {
             padding: 8px 15px;
             cursor: pointer;
-            font-size: 0.95em;
+            border-radius: 6px;
+            margin-bottom: 5px;
+            transition: background 0.2s ease;
+            font-size: 0.9em;
         }
 
         .status-option:hover {
-            background-color: #f1f1f1;
+            background: #f8f9ff;
         }
 
-        /* Modal Styles */
+        .status-option:last-child {
+            margin-bottom: 0;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.1em;
+            color: #636e72;
+        }
+
+        .no-jobs {
+            text-align: center;
+            padding: 40px;
+            color: #636e72;
+            font-style: italic;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .refreshing {
+            animation: pulse 1s ease-in-out;
+        }
+
+        /* --- MODAL STYLES --- */
         .modal {
-            display: none;
-            position: fixed;
-            z-index: 1001;
+            display: none; /* Hidden by default */
+            position: fixed; 
+            z-index: 2000; 
             left: 0;
             top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0, 0, 0, 0.4);
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.4); 
+            padding-top: 60px;
         }
 
         .modal-content {
             background-color: #fefefe;
-            margin: 10% auto;
-            padding: 30px;
-            border: 1px solid #888;
-            width: 80%;
+            margin: 5% auto; /* 5% from the top and centered */
+            padding: 20px;
+            border-radius: 12px;
+            width: 80%; /* Could be more or less, depending on screen size */
             max-width: 400px;
-            border-radius: 8px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
 
-        .close-btn {
+        .close-button {
             color: #aaa;
             float: right;
             font-size: 28px;
             font-weight: bold;
-            position: absolute;
-            top: 10px;
-            right: 15px;
         }
 
-        .close-btn:hover,
-        .close-btn:focus {
-            color: #000;
+        .close-button:hover,
+        .close-button:focus {
+            color: #333;
             text-decoration: none;
             cursor: pointer;
         }
 
         .modal-content h2 {
-            margin-top: 0;
-            color: #007bff;
-            border-bottom: 2px solid #eee;
+            color: #667eea;
+            border-bottom: 2px solid #e0e6ed;
             padding-bottom: 10px;
             margin-bottom: 20px;
+            font-size: 1.5em;
         }
 
         .modal-content label {
             display: block;
             margin-bottom: 8px;
-            font-weight: bold;
+            font-weight: 600;
         }
 
-        .modal-content select,
-        .modal-content input[type="date"] {
+        .modal-content input[type="date"],
+        .modal-content select {
             width: 100%;
             padding: 10px;
             margin-bottom: 20px;
+            border-radius: 8px;
             border: 1px solid #ccc;
-            border-radius: 4px;
+            box-shadow: none; /* Override default select/input styling */
             box-sizing: border-box;
         }
 
         .modal-content button {
-            background-color: #007bff;
+            background: #667eea;
             color: white;
-            padding: 10px 15px;
+            padding: 10px 20px;
             border: none;
-            border-radius: 4px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 1em;
-            transition: background-color 0.2s;
+            transition: background 0.3s;
+            float: right;
         }
 
         .modal-content button:hover {
-            background-color: #0056b3;
+            background: #5a6ed0;
+        }
+
+        /* --- Existing Media Queries (omitted for brevity) --- */
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .header-logo {
+                height: 40px;
+            }
+            
+            .main-content {
+                flex-direction: column;
+                padding: 10px;
+            }
+            
+            .engineers-sidebar {
+                width: 100%;
+                order: 2;
+            }
+            
+            .jobs-area {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
-
     <div class="header">
-        <h1>Job Scheduling Dashboard</h1>
-        <div class="refresh-status">
-            <span id="loading-indicator" style="display:none;">Loading...</span>
-            <span id="refresh-countdown">Refreshing in 30s</span>
+        <div class="header-content">
+            <img src="https://www.dropbox.com/scl/fi/4eilt1ka4obatkaif4ksg/Screenshot-2025-06-11-132304.png?rlkey=1puz3m5i205n2t4q9n6srfq56&st=00ujjvmz&dl=1" alt="Company Screenshot" class="header-logo">
+            <h1>Job Scheduling Dashboard</h1>
+            <img src="https://www.dropbox.com/scl/fi/67vmxu3kngvgkm1mf5tcp/Stark.jpg?rlkey=5gz9fhspn3t1aiu03ksob3r2c&st=8ppqfpwr&dl=1" alt="Stark Logo" class="header-logo">
         </div>
-    </div>
-
-    <div class="container">
         <div class="filters">
             <div class="filter-group">
-                <label for="engineerFilter">Filter by Engineer:</label>
-                <select id="engineerFilter">
-                    </select>
-            </div>
-            <div class="filter-group">
-                <label for="dateFilter">Filter by Date:</label>
+                <label for="dateFilter">Select Date:</label>
                 <input type="date" id="dateFilter">
             </div>
             <div class="filter-group">
-                <button id="clearFiltersBtn">Clear Filters</button>
+                <label for="engineerFilter">Select Engineer:</label>
+                <select id="engineerFilter">
+                    <option value="">All Engineers</option>
+                </select>
             </div>
-        </div>
-
-        <div id="jobs-container">
-            <div id="loading-jobs-message" class="no-jobs">
-                Loading job data...
+            <div class="filter-group">
+                <div class="refresh-control">
+                    <div class="refresh-toggle">
+                        <input type="checkbox" id="autoRefreshToggle" checked>
+                        <label for="autoRefreshToggle">Auto-Refresh (30s)</label>
+                    </div>
+                    <div class="refresh-status" id="refreshStatus">Next refresh in 30s</div>
+                </div>
             </div>
         </div>
     </div>
 
-    <div id="statusMenu">
-        <div class="menu-heading">Update Status</div>
-        <div class="status-option" data-action="status" data-status="New">New</div>
-        <div class="status-option" data-action="status" data-status="In Progress">In Progress</div>
-        <div class="status-option" data-action="status" data-status="On Hold">On Hold</div>
-        <div class="status-option" data-action="status" data-status="Complete">Complete</div>
-        <div class="status-option" data-action="status" data-status="Cancelled">Cancelled</div>
-        <div class="menu-heading" style="margin-top: 5px;">Update Other Fields</div>
-        <div class="status-option" data-action="engineer">Change Engineer (Column O)</div>
-        <div class="status-option" data-action="date">Change Date (Columns J, K, L)</div>
+    <div class="main-content">
+        <div class="engineers-sidebar">
+            <h3>Working Today</h3>
+            <div id="engineersList"></div>
+        </div>
+
+        <div class="jobs-area" id="engineerJobsContainer">
+            <div class="loading">Loading jobs...</div>
+        </div>
+    </div>
+
+    <div id="statusMenu" class="status-menu" style="display: none;">
+        <div class="status-option" data-action="status" data-status="On Route">🚗 Change Status: On Route</div>
+        <div class="status-option" data-action="status" data-status="In Progress">🔧 Change Status: In Progress</div>
+        <div class="status-option" data-action="status" data-status="Completed">✅ Change Status: Completed</div>
+        <div class="status-option" data-action="status" data-status="Cancelled">❌ Change Status: Cancelled</div>
+        <div class="status-option" data-action="status" data-status="Aborted">⚠️ Change Status: Aborted</div>
+        <div class="menu-divider"></div>
+        <div class="status-option" data-action="engineer">👷 Change Engineer</div>
+        <div class="status-option" data-action="date">📅 Change Date</div>
     </div>
 
     <div id="updateModal" class="modal">
         <div class="modal-content">
-            <span class="close-btn" onclick="closeModal()">&times;</span>
-            <h2 id="modalTitle">Update Job</h2>
-
+            <span class="close-button" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle">Update Job #</h2>
             <div id="engineerField">
                 <label for="modalEngineerSelect">Select New Engineer:</label>
                 <select id="modalEngineerSelect"></select>
             </div>
-
             <div id="dateField" style="display:none;">
                 <label for="modalDateInput">Select New Date:</label>
                 <input type="date" id="modalDateInput">
             </div>
-
             <button onclick="saveChanges()">Save Changes</button>
         </div>
     </div>
 
     <script>
-        // REPLACE THIS WITH YOUR ACTUAL GOOGLE APPS SCRIPT URL
         const API_URL = 'https://script.google.com/macros/s/AKfycbzt_YC8oU_y_8jQJBeVNoWGBIZljQrn6YicBZGhJ0Hcrvt7k264RVZjYb8DnPNeFrT_/exec';
         
         let allJobs = [];
-        let allEngineers = [];
+        let allEngineers = []; // NEW: Store all engineers for the modal
         let selectedDate = '';
         let selectedEngineer = '';
         let currentJobCard = null;
-        let currentJobRef = null;
+        let currentJobRef = null; // NEW: Store the current job reference
         let refreshInterval = null;
         let countdownInterval = null;
         let secondsUntilRefresh = 30;
         const REFRESH_INTERVAL_MS = 30000; // 30 seconds
 
-        const jobsContainer = document.getElementById('jobs-container');
-        const loadingIndicator = document.getElementById('loading-indicator');
-        const refreshCountdown = document.getElementById('refresh-countdown');
-        const engineerFilter = document.getElementById('engineerFilter');
-        const dateFilter = document.getElementById('dateFilter');
-        const clearFiltersBtn = document.getElementById('clearFiltersBtn');
-        const loadingJobsMessage = document.getElementById('loading-jobs-message');
-
+        // --- NEW MODAL ELEMENTS ---
         const updateModal = document.getElementById('updateModal');
         const modalTitle = document.getElementById('modalTitle');
         const engineerField = document.getElementById('engineerField');
         const dateField = document.getElementById('dateField');
         const modalEngineerSelect = document.getElementById('modalEngineerSelect');
         const modalDateInput = document.getElementById('modalDateInput');
+        // -------------------------
 
-        // --- Core Functions ---
-
-        function init() {
+        async function init() {
+            const today = new Date();
+            const todayString = today.toISOString().split('T')[0];
+            document.getElementById('dateFilter').value = todayString;
+            
+            selectedDate = {
+                day: today.getDate(),
+                month: today.getMonth() + 1,
+                year: today.getFullYear()
+            };
+            
+            await loadJobs();
             setupEventListeners();
-            loadJobs();
             startAutoRefresh();
         }
 
         function setupEventListeners() {
-            engineerFilter.addEventListener('change', handleEngineerChange);
-            dateFilter.addEventListener('change', handleDateChange);
-            clearFiltersBtn.addEventListener('click', clearFilters);
+            document.getElementById('dateFilter').addEventListener('change', handleDateChange);
+            document.getElementById('engineerFilter').addEventListener('change', handleEngineerChange);
+            document.getElementById('autoRefreshToggle').addEventListener('change', handleAutoRefreshToggle);
+            
             document.addEventListener('click', (e) => {
-                if (!e.target.closest('.job-card') && !e.target.closest('#statusMenu')) {
-                    document.getElementById('statusMenu').style.display = 'none';
-                    currentJobCard = null;
-                    currentJobRef = null;
+                const statusMenu = document.getElementById('statusMenu');
+                if (!statusMenu.contains(e.target) && !e.target.closest('.job-card')) {
+                    statusMenu.style.display = 'none';
                 }
             });
+            
+            // NEW: Close modal when clicking outside
             window.onclick = function(event) {
                 if (event.target == updateModal) {
                     closeModal();
@@ -388,189 +571,252 @@
             }
         }
 
+        // --- Auto Refresh Functions (Unchanged - Omitted for brevity) ---
         function startAutoRefresh() {
-            clearInterval(refreshInterval);
-            clearInterval(countdownInterval);
+             const autoRefreshEnabled = document.getElementById('autoRefreshToggle').checked;
             
-            // Countdown timer
-            countdownInterval = setInterval(() => {
-                secondsUntilRefresh--;
-                refreshCountdown.textContent = `Refreshing in ${secondsUntilRefresh}s`;
-                if (secondsUntilRefresh <= 0) {
+            if (autoRefreshEnabled) {
+                secondsUntilRefresh = 30;
+                updateRefreshStatus();
+                
+                refreshInterval = setInterval(async () => {
+                    await refreshJobs();
                     secondsUntilRefresh = 30;
-                }
-            }, 1000);
-
-            // Full refresh interval
-            refreshInterval = setInterval(() => {
-                loadJobs(true);
-            }, REFRESH_INTERVAL_MS);
-        }
-        
-        async function loadJobs(isAutoRefresh = false) {
-            if (!isAutoRefresh) {
-                loadingJobsMessage.style.display = 'block';
-                jobsContainer.innerHTML = '';
+                }, REFRESH_INTERVAL_MS);
+                
+                countdownInterval = setInterval(() => {
+                    secondsUntilRefresh--;
+                    updateRefreshStatus();
+                    if (secondsUntilRefresh <= 0) {
+                        secondsUntilRefresh = 30;
+                    }
+                }, 1000);
+            } else {
+                stopAutoRefresh();
             }
-            loadingIndicator.style.display = 'inline';
-            refreshCountdown.style.display = 'none';
+        }
 
+        function stopAutoRefresh() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+                refreshInterval = null;
+            }
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+            }
+            document.getElementById('refreshStatus').textContent = 'Auto-refresh disabled';
+        }
+
+        function updateRefreshStatus() {
+            const statusElement = document.getElementById('refreshStatus');
+            statusElement.textContent = `Next refresh in ${secondsUntilRefresh}s`;
+        }
+
+        function handleAutoRefreshToggle(e) {
+            if (e.target.checked) {
+                startAutoRefresh();
+            } else {
+                stopAutoRefresh();
+            }
+        }
+
+        async function refreshJobs() {
+            const container = document.getElementById('engineerJobsContainer');
+            container.classList.add('refreshing');
+            
             try {
-                const response = await fetch(API_URL + '?action=getJobs');
-                const result = await response.json();
-
-                if (result.success && Array.isArray(result.data)) {
-                    allJobs = result.data.map(job => {
-                        // Ensure required fields exist and format date/status
-                        const [day, month, year] = (job.DisplayDate || '1/1/2000').split('/');
-                        const status = job.Status || 'New';
-                        
-                        return {
-                            ...job,
-                            // Store date parts for filtering/sorting
-                            dateComponents: { day: Number(day), month: Number(month), year: Number(year) },
-                            // Ensure status is lowercased and dashed for class names
-                            statusClass: status.toLowerCase().replace(' ', '-'),
-                            Status: status
-                        };
-                    });
-                    
-                    const uniqueEngineers = [...new Set(allJobs.map(job => job.Engineer).filter(e => e))].sort();
-                    allEngineers = uniqueEngineers;
-
-                    populateEngineersFilter();
-                    populateEngineersListAndFilterJobs();
-                    secondsUntilRefresh = 30; // Reset countdown
-                } else {
-                    jobsContainer.innerHTML = `<div class="no-jobs">Error loading data: ${result.message || 'Invalid response format'}</div>`;
-                }
+                await loadJobs(true); 
+                console.log('Jobs refreshed at:', new Date().toLocaleTimeString());
             } catch (error) {
-                console.error('Fetch error:', error);
-                jobsContainer.innerHTML = `<div class="no-jobs">Failed to connect to the API.</div>`;
+                console.error('Error refreshing jobs:', error);
             } finally {
-                loadingIndicator.style.display = 'none';
-                refreshCountdown.style.display = 'inline';
-                loadingJobsMessage.style.display = 'none';
+                setTimeout(() => {
+                    container.classList.remove('refreshing');
+                }, 300);
             }
         }
+        // -----------------------------------------------------------------
 
-        // --- Filtering Functions ---
+        async function loadJobs(isRefresh = false) {
+            try {
+                const response = await fetch(`${API_URL}?action=getJobs`);
+                const rawJobs = await response.json();
+                
+                allJobs = rawJobs.map(job => {
+                    // Assuming Day, Month, Year are from the spreadsheet
+                    const day = parseInt(job.Day) || 0;
+                    const month = parseInt(job.Month) || 0;
+                    const year = parseInt(job.Year) || 0;
+                    
+                    return {
+                        ...job,
+                        dateComponents: { day, month, year },
+                        displayDate: day && month && year ? `${day}/${month}/${year}` : 'No date'
+                    };
+                });
+                
+                // NEW: Populate allEngineers list
+                allEngineers = [...new Set(allJobs.map(job => job.Engineer).filter(Boolean))].sort();
+
+                if (!isRefresh) {
+                    console.log('Loaded jobs:', allJobs.length);
+                }
+                
+                populateEngineersFilter();
+                populateEngineersListAndFilterJobs();
+            } catch (error) {
+                console.error('Error loading jobs:', error);
+                document.getElementById('engineerJobsContainer').innerHTML = '<div class="no-jobs">Error loading jobs. Please check your API URL.</div>';
+            }
+        }
 
         function populateEngineersFilter() {
+            const engineerFilter = document.getElementById('engineerFilter');
+            const currentValue = engineerFilter.value;
+            
             engineerFilter.innerHTML = '<option value="">All Engineers</option>';
+            
             allEngineers.forEach(engineer => {
                 const option = document.createElement('option');
                 option.value = engineer;
                 option.textContent = engineer;
-                if (engineer === selectedEngineer) {
-                    option.selected = true;
-                }
                 engineerFilter.appendChild(option);
             });
+            
+            engineerFilter.value = currentValue;
         }
 
+        // --- Filtering/Display Functions (Unchanged - Omitted for brevity) ---
         function populateEngineersListAndFilterJobs() {
-            // This function is the main entry point to re-render the cards
-            filterJobs();
-        }
+            const filteredJobs = filterJobs();
+            const jobsByEngineer = filteredJobs.reduce((acc, job) => {
+                const engineer = job.Engineer || 'Unassigned';
+                if (!acc.has(engineer)) {
+                    acc.set(engineer, []);
+                }
+                acc.get(engineer).push(job);
+                return acc;
+            }, new Map());
+            
+            const workingEngineers = [...jobsByEngineer.keys()].sort();
+            
+            const engineersList = document.getElementById('engineersList');
+            if (workingEngineers.length > 0) {
+                engineersList.innerHTML = workingEngineers.map(engineer =>
+                    `<div class="engineer-item" data-engineer="${engineer}">${engineer}</div>`
+                ).join('');
+            } else {
+                engineersList.innerHTML = '<div class="no-jobs">No engineers working</div>';
+            }
 
-        function handleEngineerChange(e) {
-            selectedEngineer = e.target.value;
-            filterJobs();
-        }
+            engineersList.querySelectorAll('.engineer-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const engineerName = item.dataset.engineer;
+                    selectedEngineer = selectedEngineer === engineerName ? '' : engineerName;
+                    document.getElementById('engineerFilter').value = selectedEngineer;
+                    populateEngineersListAndFilterJobs();
+                });
+            });
+            
+            engineersList.querySelectorAll('.engineer-item').forEach(item => {
+                if (item.dataset.engineer === selectedEngineer) {
+                    item.classList.add('selected');
+                } else {
+                    item.classList.remove('selected');
+                }
+            });
 
-        function handleDateChange(e) {
-            selectedDate = e.target.value; // YYYY-MM-DD format
-            filterJobs();
-        }
-        
-        function clearFilters() {
-            selectedEngineer = '';
-            selectedDate = '';
-            engineerFilter.value = '';
-            dateFilter.value = '';
-            filterJobs();
+            displayJobs(jobsByEngineer);
         }
 
         function filterJobs() {
-            let filteredJobs = allJobs;
+            return allJobs.filter(job => {
+                const jobDate = job.dateComponents;
+                const jobEngineer = job.Engineer;
+                
+                let dateMatch = true;
+                if (selectedDate && selectedDate.day && selectedDate.month && selectedDate.year) {
+                    dateMatch = jobDate.day === selectedDate.day && 
+                                 jobDate.month === selectedDate.month && 
+                                 jobDate.year === selectedDate.year;
+                }
+                
+                const engineerMatch = !selectedEngineer || jobEngineer === selectedEngineer;
+                
+                return dateMatch && engineerMatch;
+            });
+        }
 
-            if (selectedEngineer) {
-                filteredJobs = filteredJobs.filter(job => job.Engineer === selectedEngineer);
-            }
+        function displayJobs(jobsByEngineer) {
+            const jobsContainer = document.getElementById('engineerJobsContainer');
+            jobsContainer.innerHTML = '';
 
-            if (selectedDate) {
-                // Parse selected date into YYYY-MM-DD format for easy comparison
-                const [year, month, day] = selectedDate.split('-');
-                const selectedDateString = `${Number(day)}/${Number(month)}/${Number(year)}`;
-
-                filteredJobs = filteredJobs.filter(job => {
-                    // Assuming job.DisplayDate is 'D/M/YYYY' from the script,
-                    // or a similar format we can compare.
-                    // The job.displayDate is set to D/M/YYYY in loadJobs if missing.
-                    return job.DisplayDate === selectedDateString;
+            if (jobsByEngineer.size === 0) {
+                jobsContainer.innerHTML = '<div class="no-jobs">No jobs scheduled for this date.</div>';
+            } else {
+                jobsByEngineer.forEach((jobs, engineer) => {
+                    const amJobs = jobs.filter(job => job.Time && job.Time.toUpperCase().includes('AM'));
+                    const pmJobs = jobs.filter(job => job.Time && job.Time.toUpperCase().includes('PM'));
+                    
+                    const engineerColumn = document.createElement('div');
+                    engineerColumn.classList.add('engineer-column');
+                    
+                    engineerColumn.innerHTML = `
+                        <h3>${engineer}</h3>
+                        <div class="engineer-job-sections">
+                            <div class="time-section">
+                                <h4>Morning Jobs (AM)</h4>
+                                <div class="jobs-container">
+                                    ${amJobs.length > 0 ? amJobs.map(createJobCard).join('') : '<div class="no-jobs">No AM jobs</div>'}
+                                </div>
+                            </div>
+                            <div class="time-section">
+                                <h4>Afternoon Jobs (PM)</h4>
+                                <div class="jobs-container">
+                                    ${pmJobs.length > 0 ? pmJobs.map(createJobCard).join('') : '<div class="no-jobs">No PM jobs</div>'}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    jobsContainer.appendChild(engineerColumn);
                 });
             }
 
-            displayJobs(filteredJobs);
-        }
-
-        // --- Display Functions ---
-
-        function displayJobs(jobs) {
-            jobsContainer.innerHTML = '';
-
-            if (jobs.length === 0) {
-                jobsContainer.innerHTML = '<div class="no-jobs">No jobs found matching the current filters.</div>';
-                return;
-            }
-
-            // Sort by date (Year, then Month, then Day)
-            jobs.sort((a, b) => {
-                if (a.dateComponents.year !== b.dateComponents.year) return a.dateComponents.year - b.dateComponents.year;
-                if (a.dateComponents.month !== b.dateComponents.month) return a.dateComponents.month - b.dateComponents.month;
-                return a.dateComponents.day - b.dateComponents.day;
-            });
-
-            jobs.forEach(job => {
-                const card = createJobCard(job);
-                jobsContainer.appendChild(card);
+            jobsContainer.querySelectorAll('.job-card').forEach(card => {
+                card.addEventListener('click', handleJobCardClick);
             });
         }
 
         function createJobCard(job) {
-            const card = document.createElement('div');
-            card.className = `job-card ${job.statusClass}`;
-            card.dataset.ref = job.Ref;
-            card.onclick = handleJobCardClick;
-
-            const header = document.createElement('div');
-            header.className = 'job-header';
-            header.innerHTML = `
-                <span class="job-ref">#${job.Ref}</span>
-                <span class="job-status ${job.statusClass}">${job.Status}</span>
+            const statusClass = job.Status ? job.Status.toLowerCase().replace(' ', '-') : '';
+            const statusDisplay = job.Status || 'Pending';
+            
+            return `
+                <div class="job-card ${statusClass}" data-ref="${job.Ref}">
+                    <div class="job-header">
+                        <div class="job-ref">Job #${job.Ref}</div>
+                        <div class="job-status ${statusClass}">${statusDisplay}</div>
+                    </div>
+                    <div class="job-details">
+                        <div class="job-detail"><strong>Customer:</strong> ${job['Appointment Contact Name'] || 'N/A'}</div>
+                        <div class="job-detail"><strong>Phone:</strong> ${job['Appointment Contact Number'] || 'N/A'}</div>
+                        <div class="job-detail"><strong>Address:</strong> ${job.Address || 'N/A'}</div>
+                        <div class="job-detail"><strong>Postcode:</strong> ${job['Job Details : Postcode'] || 'N/A'}</div>
+                        <div class="job-detail"><strong>Time:</strong> ${job.Time || 'N/A'}</div>
+                        <div class="job-detail"><strong>Date:</strong> ${job.displayDate}</div>
+                        <div class="job-detail"><strong>Engineer:</strong> ${job.Engineer || 'Unassigned'}</div>
+                    </div>
+                </div>
             `;
-
-            const details = document.createElement('div');
-            details.className = 'job-details';
-            details.innerHTML = `
-                <p><strong>Engineer:</strong> ${job.Engineer || 'Unassigned'}</p>
-                <p><strong>Date:</strong> ${job.DisplayDate}</p>
-                <p><strong>Description:</strong> ${job.Description || 'N/A'}</p>
-            `;
-
-            card.appendChild(header);
-            card.appendChild(details);
-
-            return card;
         }
+        // -----------------------------------------------------------------
 
-        // --- Modal/Context Menu Functions ---
-
+        // UPDATED: handleJobCardClick to set up all menu options
         function handleJobCardClick(e) {
             e.stopPropagation();
             currentJobCard = e.currentTarget;
-            currentJobRef = currentJobCard.dataset.ref;
+            currentJobRef = currentJobCard.dataset.ref; // Set the job ref
             
             const rect = currentJobCard.getBoundingClientRect();
             const statusMenu = document.getElementById('statusMenu');
@@ -584,6 +830,7 @@
             });
         }
 
+        // NEW: Handles the click on any menu option (Status, Engineer, Date)
         function handleMenuOptionClick(option) {
             const action = option.dataset.action;
             const statusMenu = document.getElementById('statusMenu');
@@ -592,8 +839,7 @@
             if (!currentJobRef) return;
 
             if (action === 'status') {
-                // Direct call for status update (Only updates Status column)
-                updateJobStatus(option.dataset.status); 
+                updateJobStatus(option.dataset.status);
             } else if (action === 'engineer') {
                 openModal('engineer');
             } else if (action === 'date') {
@@ -601,6 +847,7 @@
             }
         }
 
+        // NEW: Modal functions
         function openModal(type) {
             const job = allJobs.find(j => j.Ref == currentJobRef);
             if (!job) return;
@@ -615,11 +862,8 @@
             } else if (type === 'date') {
                 engineerField.style.display = 'none';
                 dateField.style.display = 'block';
-                
-                // Format date components to YYYY-MM-DD for the input field
-                const formattedMonth = String(job.dateComponents.month).padStart(2, '0');
-                const formattedDay = String(job.dateComponents.day).padStart(2, '0');
-                const dateString = `${job.dateComponents.year}-${formattedMonth}-${formattedDay}`;
+                // Set the current date as the default value in YYYY-MM-DD format
+                const dateString = `${job.dateComponents.year}-${String(job.dateComponents.month).padStart(2, '0')}-${String(job.dateComponents.day).padStart(2, '0')}`;
                 modalDateInput.value = dateString;
             }
 
@@ -635,6 +879,7 @@
         function populateModalEngineerSelect(currentEngineer) {
             modalEngineerSelect.innerHTML = '';
             
+            // Add an 'Unassigned' option if appropriate
             const unassignedOption = document.createElement('option');
             unassignedOption.value = '';
             unassignedOption.textContent = 'Unassigned';
@@ -650,70 +895,54 @@
                 modalEngineerSelect.appendChild(option);
             });
         }
-        
+
+        // NEW: Save changes from the modal
         async function saveChanges() {
             const type = updateModal.dataset.updateType;
-            let dataToUpdate = {};
+            let fieldToUpdate, newValue, apiField;
             const jobRef = currentJobRef;
 
             if (type === 'engineer') {
-                const newEngineer = modalEngineerSelect.value || '';
-                
-                // Maps to API column name "Engineer" (Column O)
-                dataToUpdate['Engineer'] = newEngineer; 
-                dataToUpdate['clientField'] = 'Engineer'; // For client-side data update
+                newValue = modalEngineerSelect.value || 'Unassigned';
+                apiField = 'Engineer';
+                fieldToUpdate = 'Engineer'; // Key for the job object
             } else if (type === 'date') {
-                const newDateValue = modalDateInput.value;
+                newValue = modalDateInput.value;
+                apiField = 'Date'; // The field the API expects to parse
+                fieldToUpdate = 'Date';
                 
-                if (!newDateValue) {
+                // Simple validation for date
+                if (!newValue) {
                     alert('Please select a date.');
                     return;
                 }
-
-                // Map to API column names "Day", "Month", "Year" (Columns J, K, L)
-                const parts = newDateValue.split('-'); // YYYY-MM-DD
-                dataToUpdate['Year'] = parts[0];
-                dataToUpdate['Month'] = parts[1];
-                dataToUpdate['Day'] = parts[2];
-                dataToUpdate['clientField'] = 'Date'; // For client-side data update
             } else {
-                return;
+                return; // Should not happen
             }
 
             closeModal(); 
             
-            // Pass the job reference and the object containing all necessary updates
-            await updateJobData(jobRef, dataToUpdate);
+            await updateJobField(jobRef, apiField, newValue, fieldToUpdate);
         }
-
-        /**
-         * Generic function to update multiple job fields (Engineer or Date).
-         * The payload contains only the column(s) that need to be updated.
-         * @param {string} jobRef The job reference.
-         * @param {object} updates Contains the field(s) to update and client-side helpers.
-         */
-        async function updateJobData(jobRef, updates) {
-            const clientField = updates.clientField;
-            const payload = {
-                action: "updateJob",
-                data: {
-                    Ref: jobRef
-                }
-            };
-
-            // Copy all update fields (like Engineer or Day/Month/Year) to the payload
-            for (const key in updates) {
-                if (key !== 'clientField') { // Don't send client-side helpers to the API
-                    payload.data[key] = updates[key];
-                }
-            }
-
+        
+        // NEW: Generic function to update any job field
+        async function updateJobField(jobRef, apiField, newValue, clientField) {
             try {
-                console.log(`Updating job ${jobRef} with:`, payload.data);
+                const payload = {
+                    action: "updateJob",
+                    data: {
+                        Ref: jobRef,
+                        [apiField]: newValue
+                    }
+                };
+                
+                console.log(`Updating job ${jobRef}: ${apiField} to ${newValue}`);
 
                 const response = await fetch(API_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    headers: {
+                        'Content-Type': 'text/plain;charset=utf-8'
+                    },
                     body: JSON.stringify(payload)
                 });
                 
@@ -723,86 +952,57 @@
                     const job = allJobs.find(j => j.Ref == jobRef);
                     if (job) {
                         if (clientField === 'Date') {
-                            // Update client-side job object properties
-                            const day = Number(updates.Day);
-                            const month = Number(updates.Month);
-                            const year = Number(updates.Year);
-                            
-                            job.Day = day;
-                            job.Month = month;
-                            job.Year = year;
-                            job.dateComponents = { day, month, year };
-                            job.DisplayDate = `${day}/${month}/${year}`;
-                        } else if (clientField === 'Engineer') {
-                            job.Engineer = updates.Engineer;
+                            // Split date (YYYY-MM-DD) for display logic
+                            const parts = newValue.split('-');
+                            job.Day = parts[2];
+                            job.Month = parts[1];
+                            job.Year = parts[0];
+                            job.dateComponents = { day: Number(parts[2]), month: Number(parts[1]), year: Number(parts[0]) };
+                            job.displayDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+                        } else {
+                            // Update job object property (e.g., Engineer, Status)
+                            job[clientField] = newValue;
                         }
                     }
                     
-                    // Re-render the dashboard to reflect the change
+                    // Re-render the jobs to update the display and re-filter
                     populateEngineersListAndFilterJobs();
                     console.log(`Job ${jobRef} updated successfully.`);
                 } else {
                     throw new Error(result.message || 'Unknown error occurred');
                 }
             } catch (error) {
-                console.error(`Error updating job data:`, error);
-                alert(`Failed to update job data: ${error.message}. Please check your Google Apps Script.`);
-                await loadJobs(true); // Re-load jobs in case of failure to sync client data
-            }
-        }
-        
-        /**
-         * Function dedicated ONLY to updating the Status column.
-         * @param {string} newStatus The new status value.
-         */
-        async function updateJobStatus(newStatus) {
-            const jobRef = currentJobRef;
-            const payload = {
-                action: "updateJob",
-                data: {
-                    Ref: jobRef,
-                    Status: newStatus // Only send Status
-                }
-            };
-
-            try {
-                console.log(`Updating job ${jobRef} to status: ${newStatus}`);
-                
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify(payload)
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    const job = allJobs.find(j => j.Ref == jobRef);
-                    const statusClass = newStatus.toLowerCase().replace(' ', '-');
-
-                    if (job) {
-                        job.Status = newStatus;
-                        job.statusClass = statusClass;
-                    }
-                    
-                    // Update card display directly for quick visual feedback
-                    if (currentJobCard) {
-                        currentJobCard.className = 'job-card ' + statusClass;
-                        currentJobCard.querySelector('.job-status').textContent = newStatus;
-                        currentJobCard.querySelector('.job-status').className = 'job-status ' + statusClass;
-                    }
-
-                    // Re-render the dashboard (or just filter) as status might affect display
-                    populateEngineersListAndFilterJobs(); 
-                    console.log('Job status updated successfully');
-                } else {
-                    throw new Error(result.message || 'Unknown error occurred');
-                }
-            } catch (error) {
-                console.error('Error updating job status:', error);
-                alert(`Failed to update job status: ${error.message}.`);
+                console.error(`Error updating job ${apiField}:`, error);
+                alert(`Failed to update job ${apiField}: ${error.message}.`);
+                // Re-load jobs in case of failure to sync client data
                 await loadJobs(true);
             }
+        }
+
+        // UPDATED: updateJobStatus to use the new generic updateJobField
+        async function updateJobStatus(newStatus) {
+            await updateJobField(currentJobRef, 'Status', newStatus, 'Status');
+        }
+
+        // --- Filter Handlers (Unchanged - Omitted for brevity) ---
+        function handleDateChange(e) {
+            const dateValue = e.target.value;
+            if (dateValue) {
+                const date = new Date(dateValue);
+                selectedDate = {
+                    day: date.getDate(),
+                    month: date.getMonth() + 1,
+                    year: date.getFullYear()
+                };
+            } else {
+                selectedDate = '';
+            }
+            populateEngineersListAndFilterJobs();
+        }
+
+        function handleEngineerChange(e) {
+            selectedEngineer = e.target.value;
+            populateEngineersListAndFilterJobs();
         }
 
         window.addEventListener('load', init);
