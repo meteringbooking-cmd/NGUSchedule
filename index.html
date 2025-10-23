@@ -954,9 +954,10 @@
 
             const response = await fetch(API_URL, {
                 method: 'POST',
+                // Apps Script often prefers Content-Type to be omitted
+                // or treated as text/plain when receiving JSON via POST
                 headers: {
-                    // Use 'application/json' when sending a JSON body
-                    'Content-Type': 'application/json' 
+                    'Content-Type': 'text/plain;charset=utf-8' // IMPORTANT: Use this for Apps Script to properly parse JSON body
                 },
                 body: JSON.stringify(payload)
             });
@@ -1039,5 +1040,6 @@
 
     window.addEventListener('load', init);
 </script>
+
 
 
