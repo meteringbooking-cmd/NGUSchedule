@@ -17,6 +17,8 @@
             color: #333;
         }
 
+        /* --- Existing Styles (omitted for brevity, assume they are still here) --- */
+
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -285,6 +287,14 @@
             padding: 10px;
             z-index: 1000;
             border: 1px solid #e0e6ed;
+            /* Added CSS for better differentiation */
+            min-width: 200px; 
+        }
+
+        .menu-divider {
+            height: 1px;
+            background-color: #e0e6ed;
+            margin: 5px 0;
         }
 
         .status-option {
@@ -326,6 +336,87 @@
         .refreshing {
             animation: pulse 1s ease-in-out;
         }
+
+        /* --- MODAL STYLES --- */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; 
+            z-index: 2000; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.4); 
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto; /* 5% from the top and centered */
+            padding: 20px;
+            border-radius: 12px;
+            width: 80%; /* Could be more or less, depending on screen size */
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: #333;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .modal-content h2 {
+            color: #667eea;
+            border-bottom: 2px solid #e0e6ed;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .modal-content label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .modal-content input[type="date"],
+        .modal-content select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            box-shadow: none; /* Override default select/input styling */
+            box-sizing: border-box;
+        }
+
+        .modal-content button {
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background 0.3s;
+            float: right;
+        }
+
+        .modal-content button:hover {
+            background: #5a6ed0;
+        }
+
+        /* --- Existing Media Queries (omitted for brevity) --- */
 
         @media (max-width: 768px) {
             .header-content {
@@ -395,24 +486,54 @@
     </div>
 
     <div id="statusMenu" class="status-menu" style="display: none;">
-        <div class="status-option" data-status="On Route">🚗 On Route</div>
-        <div class="status-option" data-status="In Progress">🔧 In Progress</div>
-        <div class="status-option" data-status="Completed">✅ Completed</div>
-        <div class="status-option" data-status="Cancelled">❌ Cancelled</div>
-        <div class="status-option" data-status="Aborted">⚠️ Aborted</div>
+        <div class="status-option" data-action="status" data-status="On Route">🚗 Change Status: On Route</div>
+        <div class="status-option" data-action="status" data-status="In Progress">🔧 Change Status: In Progress</div>
+        <div class="status-option" data-action="status" data-status="Completed">✅ Change Status: Completed</div>
+        <div class="status-option" data-action="status" data-status="Cancelled">❌ Change Status: Cancelled</div>
+        <div class="status-option" data-action="status" data-status="Aborted">⚠️ Change Status: Aborted</div>
+        <div class="menu-divider"></div>
+        <div class="status-option" data-action="engineer">👷 Change Engineer</div>
+        <div class="status-option" data-action="date">📅 Change Date</div>
+    </div>
+
+    <div id="updateModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle">Update Job #</h2>
+            <div id="engineerField">
+                <label for="modalEngineerSelect">Select New Engineer:</label>
+                <select id="modalEngineerSelect"></select>
+            </div>
+            <div id="dateField" style="display:none;">
+                <label for="modalDateInput">Select New Date:</label>
+                <input type="date" id="modalDateInput">
+            </div>
+            <button onclick="saveChanges()">Save Changes</button>
+        </div>
     </div>
 
     <script>
         const API_URL = 'https://script.google.com/macros/s/AKfycbzt_YC8oU_y_8jQJBeVNoWGBIZljQrn6YicBZGhJ0Hcrvt7k264RVZjYb8DnPNeFrT_/exec';
         
         let allJobs = [];
+        let allEngineers = []; // NEW: Store all engineers for the modal
         let selectedDate = '';
         let selectedEngineer = '';
         let currentJobCard = null;
+        let currentJobRef = null; // NEW: Store the current job reference
         let refreshInterval = null;
         let countdownInterval = null;
         let secondsUntilRefresh = 30;
         const REFRESH_INTERVAL_MS = 30000; // 30 seconds
+
+        // --- NEW MODAL ELEMENTS ---
+        const updateModal = document.getElementById('updateModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const engineerField = document.getElementById('engineerField');
+        const dateField = document.getElementById('dateField');
+        const modalEngineerSelect = document.getElementById('modalEngineerSelect');
+        const modalDateInput = document.getElementById('modalDateInput');
+        // -------------------------
 
         async function init() {
             const today = new Date();
@@ -441,10 +562,18 @@
                     statusMenu.style.display = 'none';
                 }
             });
+            
+            // NEW: Close modal when clicking outside
+            window.onclick = function(event) {
+                if (event.target == updateModal) {
+                    closeModal();
+                }
+            }
         }
 
+        // --- Auto Refresh Functions (Unchanged - Omitted for brevity) ---
         function startAutoRefresh() {
-            const autoRefreshEnabled = document.getElementById('autoRefreshToggle').checked;
+             const autoRefreshEnabled = document.getElementById('autoRefreshToggle').checked;
             
             if (autoRefreshEnabled) {
                 secondsUntilRefresh = 30;
@@ -497,7 +626,7 @@
             container.classList.add('refreshing');
             
             try {
-                await loadJobs(true); // Pass true to indicate this is a refresh
+                await loadJobs(true); 
                 console.log('Jobs refreshed at:', new Date().toLocaleTimeString());
             } catch (error) {
                 console.error('Error refreshing jobs:', error);
@@ -507,6 +636,7 @@
                 }, 300);
             }
         }
+        // -----------------------------------------------------------------
 
         async function loadJobs(isRefresh = false) {
             try {
@@ -514,6 +644,7 @@
                 const rawJobs = await response.json();
                 
                 allJobs = rawJobs.map(job => {
+                    // Assuming Day, Month, Year are from the spreadsheet
                     const day = parseInt(job.Day) || 0;
                     const month = parseInt(job.Month) || 0;
                     const year = parseInt(job.Year) || 0;
@@ -525,9 +656,11 @@
                     };
                 });
                 
+                // NEW: Populate allEngineers list
+                allEngineers = [...new Set(allJobs.map(job => job.Engineer).filter(Boolean))].sort();
+
                 if (!isRefresh) {
                     console.log('Loaded jobs:', allJobs.length);
-                    console.log('Sample job:', allJobs[0]);
                 }
                 
                 populateEngineersFilter();
@@ -541,11 +674,10 @@
         function populateEngineersFilter() {
             const engineerFilter = document.getElementById('engineerFilter');
             const currentValue = engineerFilter.value;
-            const engineers = [...new Set(allJobs.map(job => job.Engineer).filter(Boolean))].sort();
             
             engineerFilter.innerHTML = '<option value="">All Engineers</option>';
             
-            engineers.forEach(engineer => {
+            allEngineers.forEach(engineer => {
                 const option = document.createElement('option');
                 option.value = engineer;
                 option.textContent = engineer;
@@ -555,6 +687,7 @@
             engineerFilter.value = currentValue;
         }
 
+        // --- Filtering/Display Functions (Unchanged - Omitted for brevity) ---
         function populateEngineersListAndFilterJobs() {
             const filteredJobs = filterJobs();
             const jobsByEngineer = filteredJobs.reduce((acc, job) => {
@@ -605,8 +738,8 @@
                 let dateMatch = true;
                 if (selectedDate && selectedDate.day && selectedDate.month && selectedDate.year) {
                     dateMatch = jobDate.day === selectedDate.day && 
-                               jobDate.month === selectedDate.month && 
-                               jobDate.year === selectedDate.year;
+                                 jobDate.month === selectedDate.month && 
+                                 jobDate.year === selectedDate.year;
                 }
                 
                 const engineerMatch = !selectedEngineer || jobEngineer === selectedEngineer;
@@ -677,10 +810,14 @@
                 </div>
             `;
         }
+        // -----------------------------------------------------------------
 
+        // UPDATED: handleJobCardClick to set up all menu options
         function handleJobCardClick(e) {
             e.stopPropagation();
             currentJobCard = e.currentTarget;
+            currentJobRef = currentJobCard.dataset.ref; // Set the job ref
+            
             const rect = currentJobCard.getBoundingClientRect();
             const statusMenu = document.getElementById('statusMenu');
             
@@ -689,27 +826,117 @@
             statusMenu.style.top = (rect.bottom + 5) + 'px';
             
             statusMenu.querySelectorAll('.status-option').forEach(option => {
-                option.onclick = () => updateJobStatus(option.dataset.status);
+                option.onclick = () => handleMenuOptionClick(option);
             });
         }
 
-        async function updateJobStatus(newStatus) {
-            if (!currentJobCard) return;
-            
-            const jobRef = currentJobCard.dataset.ref;
+        // NEW: Handles the click on any menu option (Status, Engineer, Date)
+        function handleMenuOptionClick(option) {
+            const action = option.dataset.action;
             const statusMenu = document.getElementById('statusMenu');
             statusMenu.style.display = 'none';
 
-            try {
-                console.log(`Updating job ${jobRef} to status: ${newStatus}`);
+            if (!currentJobRef) return;
+
+            if (action === 'status') {
+                updateJobStatus(option.dataset.status);
+            } else if (action === 'engineer') {
+                openModal('engineer');
+            } else if (action === 'date') {
+                openModal('date');
+            }
+        }
+
+        // NEW: Modal functions
+        function openModal(type) {
+            const job = allJobs.find(j => j.Ref == currentJobRef);
+            if (!job) return;
+
+            modalTitle.textContent = `Update Job #${currentJobRef}`;
+            updateModal.dataset.updateType = type;
+
+            if (type === 'engineer') {
+                engineerField.style.display = 'block';
+                dateField.style.display = 'none';
+                populateModalEngineerSelect(job.Engineer);
+            } else if (type === 'date') {
+                engineerField.style.display = 'none';
+                dateField.style.display = 'block';
+                // Set the current date as the default value in YYYY-MM-DD format
+                const dateString = `${job.dateComponents.year}-${String(job.dateComponents.month).padStart(2, '0')}-${String(job.dateComponents.day).padStart(2, '0')}`;
+                modalDateInput.value = dateString;
+            }
+
+            updateModal.style.display = 'block';
+        }
+
+        function closeModal() {
+            updateModal.style.display = 'none';
+            currentJobCard = null;
+            currentJobRef = null;
+        }
+
+        function populateModalEngineerSelect(currentEngineer) {
+            modalEngineerSelect.innerHTML = '';
+            
+            // Add an 'Unassigned' option if appropriate
+            const unassignedOption = document.createElement('option');
+            unassignedOption.value = '';
+            unassignedOption.textContent = 'Unassigned';
+            modalEngineerSelect.appendChild(unassignedOption);
+
+            allEngineers.forEach(engineer => {
+                const option = document.createElement('option');
+                option.value = engineer;
+                option.textContent = engineer;
+                if (engineer === currentEngineer) {
+                    option.selected = true;
+                }
+                modalEngineerSelect.appendChild(option);
+            });
+        }
+
+        // NEW: Save changes from the modal
+        async function saveChanges() {
+            const type = updateModal.dataset.updateType;
+            let fieldToUpdate, newValue, apiField;
+            const jobRef = currentJobRef;
+
+            if (type === 'engineer') {
+                newValue = modalEngineerSelect.value || 'Unassigned';
+                apiField = 'Engineer';
+                fieldToUpdate = 'Engineer'; // Key for the job object
+            } else if (type === 'date') {
+                newValue = modalDateInput.value;
+                apiField = 'Date'; // The field the API expects to parse
+                fieldToUpdate = 'Date';
                 
+                // Simple validation for date
+                if (!newValue) {
+                    alert('Please select a date.');
+                    return;
+                }
+            } else {
+                return; // Should not happen
+            }
+
+            closeModal(); 
+            
+            await updateJobField(jobRef, apiField, newValue, fieldToUpdate);
+        }
+        
+        // NEW: Generic function to update any job field
+        async function updateJobField(jobRef, apiField, newValue, clientField) {
+            try {
                 const payload = {
                     action: "updateJob",
                     data: {
                         Ref: jobRef,
-                        Status: newStatus
+                        [apiField]: newValue
                     }
                 };
+                
+                console.log(`Updating job ${jobRef}: ${apiField} to ${newValue}`);
 
                 const response = await fetch(API_URL, {
                     method: 'POST',
@@ -719,33 +946,45 @@
                     body: JSON.stringify(payload)
                 });
                 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
                 const result = await response.json();
                 
                 if (result.success) {
                     const job = allJobs.find(j => j.Ref == jobRef);
                     if (job) {
-                        job.Status = newStatus;
+                        if (clientField === 'Date') {
+                            // Split date (YYYY-MM-DD) for display logic
+                            const parts = newValue.split('-');
+                            job.Day = parts[2];
+                            job.Month = parts[1];
+                            job.Year = parts[0];
+                            job.dateComponents = { day: Number(parts[2]), month: Number(parts[1]), year: Number(parts[0]) };
+                            job.displayDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+                        } else {
+                            // Update job object property (e.g., Engineer, Status)
+                            job[clientField] = newValue;
+                        }
                     }
                     
-                    const statusClass = newStatus.toLowerCase().replace(' ', '-');
-                    currentJobCard.className = 'job-card ' + statusClass;
-                    currentJobCard.querySelector('.job-status').textContent = newStatus;
-                    currentJobCard.querySelector('.job-status').className = 'job-status ' + statusClass;
-
-                    console.log('Job updated successfully');
+                    // Re-render the jobs to update the display and re-filter
+                    populateEngineersListAndFilterJobs();
+                    console.log(`Job ${jobRef} updated successfully.`);
                 } else {
                     throw new Error(result.message || 'Unknown error occurred');
                 }
             } catch (error) {
-                console.error('Error updating job status:', error);
-                alert(`Failed to update job status: ${error.message}. Please check the console for details.`);
+                console.error(`Error updating job ${apiField}:`, error);
+                alert(`Failed to update job ${apiField}: ${error.message}.`);
+                // Re-load jobs in case of failure to sync client data
+                await loadJobs(true);
             }
         }
 
+        // UPDATED: updateJobStatus to use the new generic updateJobField
+        async function updateJobStatus(newStatus) {
+            await updateJobField(currentJobRef, 'Status', newStatus, 'Status');
+        }
+
+        // --- Filter Handlers (Unchanged - Omitted for brevity) ---
         function handleDateChange(e) {
             const dateValue = e.target.value;
             if (dateValue) {
