@@ -49,6 +49,7 @@
             justify-content: center;
             gap: 20px;
             flex-wrap: wrap;
+            align-items: flex-end;
         }
 
         .filter-group {
@@ -70,6 +71,40 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             font-size: 16px;
             min-width: 150px;
+        }
+
+        .refresh-control {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .refresh-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .refresh-toggle input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .refresh-toggle label {
+            cursor: pointer;
+            margin: 0;
+            color: #333;
+        }
+
+        .refresh-status {
+            font-size: 0.85em;
+            opacity: 0.9;
         }
 
         .main-content {
@@ -118,12 +153,12 @@
             flex: 1;
             display: flex;
             gap: 20px;
-            overflow-x: auto; /* Allows horizontal scrolling */
+            overflow-x: auto;
             padding-bottom: 20px;
         }
         
         .engineer-column {
-            min-width: 450px; /* Wider column for AM and PM sections */
+            min-width: 450px;
             background: white;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
@@ -283,6 +318,15 @@
             font-style: italic;
         }
 
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .refreshing {
+            animation: pulse 1s ease-in-out;
+        }
+
         @media (max-width: 768px) {
             .header-content {
                 flex-direction: column;
@@ -327,6 +371,15 @@
                     <option value="">All Engineers</option>
                 </select>
             </div>
+            <div class="filter-group">
+                <div class="refresh-control">
+                    <div class="refresh-toggle">
+                        <input type="checkbox" id="autoRefreshToggle" checked>
+                        <label for="autoRefreshToggle">Auto-Refresh (30s)</label>
+                    </div>
+                    <div class="refresh-status" id="refreshStatus">Next refresh in 30s</div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -350,33 +403,37 @@
     </div>
 
     <script>
-        // REPLACE THIS WITH YOUR GOOGLE APPS SCRIPT WEB APP URL
         const API_URL = 'https://script.google.com/macros/s/AKfycbzt_YC8oU_y_8jQJBeVNoWGBIZljQrn6YicBZGhJ0Hcrvt7k264RVZjYb8DnPNeFrT_/exec';
         
         let allJobs = [];
         let selectedDate = '';
         let selectedEngineer = '';
         let currentJobCard = null;
+        let refreshInterval = null;
+        let countdownInterval = null;
+        let secondsUntilRefresh = 30;
+        const REFRESH_INTERVAL_MS = 30000; // 30 seconds
 
         async function init() {
             const today = new Date();
             const todayString = today.toISOString().split('T')[0];
             document.getElementById('dateFilter').value = todayString;
             
-            // Set selected date to today for initial load
             selectedDate = {
                 day: today.getDate(),
-                month: today.getMonth() + 1, // getMonth() returns 0-11, we need 1-12
+                month: today.getMonth() + 1,
                 year: today.getFullYear()
             };
             
             await loadJobs();
             setupEventListeners();
+            startAutoRefresh();
         }
 
         function setupEventListeners() {
             document.getElementById('dateFilter').addEventListener('change', handleDateChange);
             document.getElementById('engineerFilter').addEventListener('change', handleEngineerChange);
+            document.getElementById('autoRefreshToggle').addEventListener('change', handleAutoRefreshToggle);
             
             document.addEventListener('click', (e) => {
                 const statusMenu = document.getElementById('statusMenu');
@@ -386,14 +443,77 @@
             });
         }
 
-        async function loadJobs() {
+        function startAutoRefresh() {
+            const autoRefreshEnabled = document.getElementById('autoRefreshToggle').checked;
+            
+            if (autoRefreshEnabled) {
+                secondsUntilRefresh = 30;
+                updateRefreshStatus();
+                
+                refreshInterval = setInterval(async () => {
+                    await refreshJobs();
+                    secondsUntilRefresh = 30;
+                }, REFRESH_INTERVAL_MS);
+                
+                countdownInterval = setInterval(() => {
+                    secondsUntilRefresh--;
+                    updateRefreshStatus();
+                    if (secondsUntilRefresh <= 0) {
+                        secondsUntilRefresh = 30;
+                    }
+                }, 1000);
+            } else {
+                stopAutoRefresh();
+            }
+        }
+
+        function stopAutoRefresh() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+                refreshInterval = null;
+            }
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+            }
+            document.getElementById('refreshStatus').textContent = 'Auto-refresh disabled';
+        }
+
+        function updateRefreshStatus() {
+            const statusElement = document.getElementById('refreshStatus');
+            statusElement.textContent = `Next refresh in ${secondsUntilRefresh}s`;
+        }
+
+        function handleAutoRefreshToggle(e) {
+            if (e.target.checked) {
+                startAutoRefresh();
+            } else {
+                stopAutoRefresh();
+            }
+        }
+
+        async function refreshJobs() {
+            const container = document.getElementById('engineerJobsContainer');
+            container.classList.add('refreshing');
+            
+            try {
+                await loadJobs(true); // Pass true to indicate this is a refresh
+                console.log('Jobs refreshed at:', new Date().toLocaleTimeString());
+            } catch (error) {
+                console.error('Error refreshing jobs:', error);
+            } finally {
+                setTimeout(() => {
+                    container.classList.remove('refreshing');
+                }, 300);
+            }
+        }
+
+        async function loadJobs(isRefresh = false) {
             try {
                 const response = await fetch(`${API_URL}?action=getJobs`);
                 const rawJobs = await response.json();
                 
-                // Process jobs to handle the new date format
                 allJobs = rawJobs.map(job => {
-                    // Create a combined date object for easier comparison
                     const day = parseInt(job.Day) || 0;
                     const month = parseInt(job.Month) || 0;
                     const year = parseInt(job.Year) || 0;
@@ -401,13 +521,14 @@
                     return {
                         ...job,
                         dateComponents: { day, month, year },
-                        // Create a display date string
                         displayDate: day && month && year ? `${day}/${month}/${year}` : 'No date'
                     };
                 });
                 
-                console.log('Loaded jobs:', allJobs.length);
-                console.log('Sample job:', allJobs[0]);
+                if (!isRefresh) {
+                    console.log('Loaded jobs:', allJobs.length);
+                    console.log('Sample job:', allJobs[0]);
+                }
                 
                 populateEngineersFilter();
                 populateEngineersListAndFilterJobs();
@@ -419,6 +540,7 @@
 
         function populateEngineersFilter() {
             const engineerFilter = document.getElementById('engineerFilter');
+            const currentValue = engineerFilter.value;
             const engineers = [...new Set(allJobs.map(job => job.Engineer).filter(Boolean))].sort();
             
             engineerFilter.innerHTML = '<option value="">All Engineers</option>';
@@ -429,6 +551,8 @@
                 option.textContent = engineer;
                 engineerFilter.appendChild(option);
             });
+            
+            engineerFilter.value = currentValue;
         }
 
         function populateEngineersListAndFilterJobs() {
@@ -478,7 +602,6 @@
                 const jobDate = job.dateComponents;
                 const jobEngineer = job.Engineer;
                 
-                // Date matching - compare day, month, year separately
                 let dateMatch = true;
                 if (selectedDate && selectedDate.day && selectedDate.month && selectedDate.year) {
                     dateMatch = jobDate.day === selectedDate.day && 
@@ -647,4 +770,3 @@
     </script>
 </body>
 </html>
-
