@@ -17,8 +17,6 @@
             color: #333;
         }
 
-        /* --- Existing Styles (omitted for brevity, assume they are still here) --- */
-
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -73,6 +71,24 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             font-size: 16px;
             min-width: 150px;
+        }
+
+        .add-appointment-btn {
+            background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(0, 184, 148, 0.3);
+        }
+
+        .add-appointment-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 184, 148, 0.4);
         }
 
         .refresh-control {
@@ -287,7 +303,6 @@
             padding: 10px;
             z-index: 1000;
             border: 1px solid #e0e6ed;
-            /* Added CSS for better differentiation */
             min-width: 200px; 
         }
 
@@ -337,9 +352,8 @@
             animation: pulse 1s ease-in-out;
         }
 
-        /* --- MODAL STYLES --- */
         .modal {
-            display: none; /* Hidden by default */
+            display: none;
             position: fixed; 
             z-index: 2000; 
             left: 0;
@@ -353,10 +367,10 @@
 
         .modal-content {
             background-color: #fefefe;
-            margin: 5% auto; /* 5% from the top and centered */
+            margin: 5% auto;
             padding: 20px;
             border-radius: 12px;
-            width: 80%; /* Could be more or less, depending on screen size */
+            width: 80%;
             max-width: 400px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
@@ -396,7 +410,7 @@
             margin-bottom: 20px;
             border-radius: 8px;
             border: 1px solid #ccc;
-            box-shadow: none; /* Override default select/input styling */
+            box-shadow: none;
             box-sizing: border-box;
         }
 
@@ -416,7 +430,61 @@
             background: #5a6ed0;
         }
 
-        /* --- Existing Media Queries (omitted for brevity) --- */
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-group label {
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #2d3436;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 10px;
+            border: 1px solid #dfe6e9;
+            border-radius: 6px;
+            font-size: 0.95em;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .modal-buttons button {
+            float: none;
+        }
+
+        .cancel-btn {
+            background: #636e72;
+        }
+
+        .cancel-btn:hover {
+            background: #4a5256;
+        }
 
         @media (max-width: 768px) {
             .header-content {
@@ -452,6 +520,9 @@
             <img src="https://www.dropbox.com/scl/fi/67vmxu3kngvgkm1mf5tcp/Stark.jpg?rlkey=5gz9fhspn3t1aiu03ksob3r2c&st=8ppqfpwr&dl=1" alt="Stark Logo" class="header-logo">
         </div>
         <div class="filters">
+            <div class="filter-group">
+                <button class="add-appointment-btn" onclick="openAddAppointmentModal()">➕ Add Appointment</button>
+            </div>
             <div class="filter-group">
                 <label for="dateFilter">Select Date:</label>
                 <input type="date" id="dateFilter">
@@ -512,28 +583,98 @@
         </div>
     </div>
 
+    <div id="addAppointmentModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <span class="close-button" onclick="closeAddAppointmentModal()">&times;</span>
+            <h2>Add New Appointment</h2>
+            
+            <form id="addAppointmentForm" onsubmit="return false;">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="newContactName">Contact Name *</label>
+                        <input type="text" id="newContactName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="newContactNumber">Contact Number *</label>
+                        <input type="tel" id="newContactNumber" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="newContactEmail">Contact Email</label>
+                        <input type="email" id="newContactEmail">
+                    </div>
+                    <div class="form-group">
+                        <label for="newSite">Site</label>
+                        <input type="text" id="newSite">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group full-width">
+                        <label for="newAddress">Address *</label>
+                        <input type="text" id="newAddress" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="newPostcode">Postcode *</label>
+                        <input type="text" id="newPostcode" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="newDate">Date *</label>
+                        <input type="date" id="newDate" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="newTime">Time *</label>
+                        <select id="newTime" required>
+                            <option value="">Select Time</option>
+                            <option value="AM">AM</option>
+                            <option value="PM">PM</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="newEngineer">Engineer *</label>
+                        <select id="newEngineer" required>
+                            <option value="">Select Engineer</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="modal-buttons">
+                    <button type="button" class="cancel-btn" onclick="closeAddAppointmentModal()">Cancel</button>
+                    <button type="button" onclick="submitNewAppointment()">Add Appointment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbxpNzGo5pG2U7ci5Qdt5N4hFNtjdTPWu7UDQUjr7bLokyykgjyBtUKOFysIDpW2B8CS/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbwgsYKehlX_5y8pL1fZX7O2KBdZ1RQ1RdRgr86HMhFlkesxh88hQagqjlbr9Xe9I_Y/exec';
     
     let allJobs = [];
-    let allEngineers = []; // NEW: Store all engineers for the modal
+    let allEngineers = [];
     let selectedDate = '';
     let selectedEngineer = '';
     let currentJobCard = null;
-    let currentJobRef = null; // NEW: Store the current job reference
+    let currentJobRef = null;
     let refreshInterval = null;
     let countdownInterval = null;
     let secondsUntilRefresh = 30;
-    const REFRESH_INTERVAL_MS = 30000; // 30 seconds
+    const REFRESH_INTERVAL_MS = 30000;
 
-    // --- NEW MODAL ELEMENTS ---
     const updateModal = document.getElementById('updateModal');
     const modalTitle = document.getElementById('modalTitle');
     const engineerField = document.getElementById('engineerField');
     const dateField = document.getElementById('dateField');
     const modalEngineerSelect = document.getElementById('modalEngineerSelect');
     const modalDateInput = document.getElementById('modalDateInput');
-    // -------------------------
+    const addAppointmentModal = document.getElementById('addAppointmentModal');
 
     async function init() {
         const today = new Date();
@@ -563,15 +704,16 @@
             }
         });
         
-        // NEW: Close modal when clicking outside
         window.onclick = function(event) {
             if (event.target == updateModal) {
                 closeModal();
             }
+            if (event.target == addAppointmentModal) {
+                closeAddAppointmentModal();
+            }
         }
     }
 
-    // --- Auto Refresh Functions (Unchanged - Omitted for brevity) ---
     function startAutoRefresh() {
         const autoRefreshEnabled = document.getElementById('autoRefreshToggle').checked;
         
@@ -636,7 +778,6 @@
             }, 300);
         }
     }
-    // -----------------------------------------------------------------
 
     async function loadJobs(isRefresh = false) {
         try {
@@ -644,7 +785,6 @@
             const rawJobs = await response.json();
             
             allJobs = rawJobs.map(job => {
-                // Assuming Day, Month, Year are from the spreadsheet
                 const day = parseInt(job.Day) || 0;
                 const month = parseInt(job.Month) || 0;
                 const year = parseInt(job.Year) || 0;
@@ -656,7 +796,6 @@
                 };
             });
             
-            // NEW: Populate allEngineers list
             allEngineers = [...new Set(allJobs.map(job => job.Engineer).filter(Boolean))].sort();
 
             if (!isRefresh) {
@@ -685,9 +824,26 @@
         });
         
         engineerFilter.value = currentValue;
+        
+        populateNewEngineerSelect();
     }
 
-    // --- Filtering/Display Functions (Unchanged - Omitted for brevity) ---
+    function populateNewEngineerSelect() {
+        const newEngineerSelect = document.getElementById('newEngineer');
+        const currentValue = newEngineerSelect.value;
+        
+        newEngineerSelect.innerHTML = '<option value="">Select Engineer</option>';
+        
+        allEngineers.forEach(engineer => {
+            const option = document.createElement('option');
+            option.value = engineer;
+            option.textContent = engineer;
+            newEngineerSelect.appendChild(option);
+        });
+        
+        newEngineerSelect.value = currentValue;
+    }
+
     function populateEngineersListAndFilterJobs() {
         const filteredJobs = filterJobs();
         const jobsByEngineer = filteredJobs.reduce((acc, job) => {
@@ -810,13 +966,11 @@
             </div>
         `;
     }
-    // -----------------------------------------------------------------
 
-    // UPDATED: handleJobCardClick to set up all menu options
     function handleJobCardClick(e) {
         e.stopPropagation();
         currentJobCard = e.currentTarget;
-        currentJobRef = currentJobCard.dataset.ref; // Set the job ref
+        currentJobRef = currentJobCard.dataset.ref;
         
         const rect = currentJobCard.getBoundingClientRect();
         const statusMenu = document.getElementById('statusMenu');
@@ -826,12 +980,10 @@
         statusMenu.style.top = (rect.bottom + 5) + 'px';
         
         statusMenu.querySelectorAll('.status-option').forEach(option => {
-            // Ensure any previous click listeners are removed/overwritten
             option.onclick = () => handleMenuOptionClick(option);
         });
     }
 
-    // NEW/MODIFIED: Handles the click on any menu option (Status, Engineer, Date)
     function handleMenuOptionClick(option) {
         const action = option.dataset.action;
         const statusMenu = document.getElementById('statusMenu');
@@ -848,7 +1000,6 @@
         }
     }
 
-    // NEW: Modal functions
     function openModal(type) {
         const job = allJobs.find(j => j.Ref == currentJobRef);
         if (!job) return;
@@ -863,7 +1014,6 @@
         } else if (type === 'date') {
             engineerField.style.display = 'none';
             dateField.style.display = 'block';
-            // Set the current date as the default value in YYYY-MM-DD format
             const monthStr = String(job.dateComponents.month).padStart(2, '0');
             const dayStr = String(job.dateComponents.day).padStart(2, '0');
             const dateString = `${job.dateComponents.year}-${monthStr}-${dayStr}`;
@@ -882,13 +1032,11 @@
     function populateModalEngineerSelect(currentEngineer) {
         modalEngineerSelect.innerHTML = '';
         
-        // Add an 'Unassigned' option
         const unassignedOption = document.createElement('option');
-        unassignedOption.value = 'Unassigned'; // Send 'Unassigned' as the Engineer name
+        unassignedOption.value = 'Unassigned';
         unassignedOption.textContent = 'Unassigned';
         modalEngineerSelect.appendChild(unassignedOption);
         
-        // Pre-select 'Unassigned' if the current engineer is null or empty
         if (!currentEngineer || currentEngineer === 'Unassigned') {
              unassignedOption.selected = true;
         }
@@ -904,43 +1052,65 @@
         });
     }
 
-    // NEW/MODIFIED: Save changes from the modal
     async function saveChanges() {
+        console.log('=== saveChanges CALLED ===');
+        
         const type = updateModal.dataset.updateType;
         let newValue, apiField, clientField;
         const jobRef = currentJobRef;
 
+        console.log('Modal update type:', type);
+        console.log('Current job ref:', jobRef);
+
+        if (!jobRef) {
+            console.error('No job reference found!');
+            alert('Error: No job selected. Please try again.');
+            return;
+        }
+
         if (type === 'engineer') {
             newValue = modalEngineerSelect.value;
-            apiField = 'Engineer'; // The key the Apps Script doPost function expects
-            clientField = 'Engineer'; // The key to update the local job object
+            apiField = 'Engineer';
+            clientField = 'Engineer';
+            
+            console.log('Engineer update - selected value:', newValue);
             
             if (!newValue) {
-                // Should not happen with the 'Unassigned' option, but as a safeguard
                 alert('Please select an engineer.');
                 return; 
             }
         } else if (type === 'date') {
-            newValue = modalDateInput.value; // YYYY-MM-DD format
-            apiField = 'Date'; // The key the Apps Script doPost function expects
+            newValue = modalDateInput.value;
+            apiField = 'Date';
             clientField = 'Date';
             
-            // Simple validation for date
+            console.log('Date update - selected value:', newValue);
+            
             if (!newValue) {
                 alert('Please select a date.');
                 return;
             }
         } else {
-            return; // Should not happen
+            console.error('Unknown update type:', type);
+            return;
         }
 
+        console.log('Proceeding with update:', { jobRef, apiField, newValue });
+        
         closeModal(); 
         
         await updateJobField(jobRef, apiField, newValue, clientField);
+        
+        console.log('saveChanges completed');
     }
     
-    // NEW: Generic function to update any job field
     async function updateJobField(jobRef, apiField, newValue, clientField) {
+        console.log('=== updateJobField CALLED ===');
+        console.log('jobRef:', jobRef);
+        console.log('apiField:', apiField);
+        console.log('newValue:', newValue);
+        console.log('clientField:', clientField);
+        
         try {
             const payload = {
                 action: "updateJob",
@@ -950,25 +1120,39 @@
                 }
             };
             
-            console.log(`Updating job ${jobRef}: ${apiField} to ${newValue}`);
+            console.log('=== SENDING UPDATE REQUEST ===');
+            console.log('API URL:', API_URL);
+            console.log('Payload:', JSON.stringify(payload, null, 2));
 
             const response = await fetch(API_URL, {
                 method: 'POST',
-                // Apps Script often prefers Content-Type to be omitted
-                // or treated as text/plain when receiving JSON via POST
                 headers: {
-                    'Content-Type': 'text/plain;charset=utf-8' // IMPORTANT: Use this for Apps Script to properly parse JSON body
+                    'Content-Type': 'text/plain;charset=utf-8'
                 },
                 body: JSON.stringify(payload)
             });
             
-            const result = await response.json();
+            console.log('=== RESPONSE RECEIVED ===');
+            console.log('Response status:', response.status);
+            console.log('Response ok:', response.ok);
+            
+            const responseText = await response.text();
+            console.log('Response text:', responseText);
+            
+            let result;
+            try {
+                result = JSON.parse(responseText);
+                console.log('Parsed response:', result);
+            } catch (parseError) {
+                console.error('Failed to parse response as JSON:', parseError);
+                throw new Error('Invalid response from server: ' + responseText.substring(0, 100));
+            }
             
             if (result.success) {
+                console.log('=== UPDATE SUCCESSFUL ===');
                 const job = allJobs.find(j => j.Ref == jobRef);
                 if (job) {
                     if (clientField === 'Date') {
-                        // Split date (YYYY-MM-DD) for display logic
                         const [year, month, day] = newValue.split('-');
                         
                         job.Day = Number(day);
@@ -977,50 +1161,49 @@
                         job.dateComponents = { day: Number(day), month: Number(month), year: Number(year) };
                         job.displayDate = `${day}/${month}/${year}`;
                         
-                        // Also update the selectedDate if the job being updated is the one setting the current filter
                         if (job.dateComponents.day === selectedDate.day &&
                             job.dateComponents.month === selectedDate.month &&
                             job.dateComponents.year === selectedDate.year) {
-                            // No change to selectedDate, but logic ensures we don't accidentally clear it.
                         } else {
-                             // Force the main date filter to the new date and re-run filters
                             document.getElementById('dateFilter').value = newValue;
                             handleDateChange({ target: { value: newValue } });
                             console.log('Date changed, re-filtering jobs.');
-                            return; // Skip re-render, as handleDateChange does it
+                            return;
                         }
                         
                     } else {
-                        // Update job object property (e.g., Engineer, Status)
                         job[clientField] = newValue;
+                        console.log(`Updated local job object: ${clientField} = ${newValue}`);
                     }
                 }
                 
-                // Re-render the jobs to update the display and re-filter
                 populateEngineersListAndFilterJobs();
-                console.log(`Job ${jobRef} updated successfully.`);
+                console.log(`✓ Job ${jobRef} updated successfully.`);
+                alert(`Job #${jobRef} ${apiField} updated successfully to: ${newValue}`);
             } else {
+                console.error('=== UPDATE FAILED ===');
+                console.error('Error message from server:', result.message);
                 throw new Error(result.message || 'Unknown error occurred');
             }
         } catch (error) {
-            console.error(`Error updating job ${apiField}:`, error);
-            alert(`Failed to update job ${apiField}: ${error.message}.`);
-            // Re-load jobs in case of failure to sync client data
+            console.error('=== UPDATE JOB ERROR ===');
+            console.error('Error type:', error.name);
+            console.error('Error message:', error.message);
+            console.error('Error stack:', error.stack);
+            alert(`Failed to update job: ${error.message}\n\nCheck browser console for details.`);
+            
+            console.log('Reloading jobs to sync with server...');
             await loadJobs(true);
         }
     }
 
-    // UPDATED: updateJobStatus to use the new generic updateJobField
     async function updateJobStatus(newStatus) {
         await updateJobField(currentJobRef, 'Status', newStatus, 'Status');
     }
 
-    // --- Filter Handlers (Unchanged - Omitted for brevity) ---
     function handleDateChange(e) {
         const dateValue = e.target.value;
         if (dateValue) {
-            const date = new Date(dateValue);
-            // Use the dateValue (YYYY-MM-DD) to reliably extract parts, as new Date() can be tricky
             const parts = dateValue.split('-');
             const year = Number(parts[0]);
             const month = Number(parts[1]);
@@ -1038,11 +1221,143 @@
         populateEngineersListAndFilterJobs();
     }
 
+    function openAddAppointmentModal() {
+        console.log('=== Opening Add Appointment Modal ===');
+        
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('newDate').value = today;
+        
+        document.getElementById('addAppointmentForm').reset();
+        document.getElementById('newDate').value = today;
+        
+        populateNewEngineerSelect();
+        
+        addAppointmentModal.style.display = 'block';
+    }
+
+    function closeAddAppointmentModal() {
+        console.log('=== Closing Add Appointment Modal ===');
+        addAppointmentModal.style.display = 'none';
+        document.getElementById('addAppointmentForm').reset();
+    }
+
+    async function submitNewAppointment() {
+        console.log('=== Submit New Appointment Called ===');
+        
+        const contactName = document.getElementById('newContactName').value.trim();
+        const contactNumber = document.getElementById('newContactNumber').value.trim();
+        const contactEmail = document.getElementById('newContactEmail').value.trim();
+        const site = document.getElementById('newSite').value.trim();
+        const address = document.getElementById('newAddress').value.trim();
+        const postcode = document.getElementById('newPostcode').value.trim();
+        const date = document.getElementById('newDate').value;
+        const time = document.getElementById('newTime').value;
+        const engineer = document.getElementById('newEngineer').value;
+        
+        if (!contactName) {
+            alert('Please enter a contact name.');
+            return;
+        }
+        if (!contactNumber) {
+            alert('Please enter a contact number.');
+            return;
+        }
+        if (!address) {
+            alert('Please enter an address.');
+            return;
+        }
+        if (!postcode) {
+            alert('Please enter a postcode.');
+            return;
+        }
+        if (!date) {
+            alert('Please select a date.');
+            return;
+        }
+        if (!time) {
+            alert('Please select a time (AM or PM).');
+            return;
+        }
+        if (!engineer) {
+            alert('Please select an engineer.');
+            return;
+        }
+        
+        console.log('Form validation passed. Submitting...');
+        
+        const appointmentData = {
+            ContactName: contactName,
+            ContactNumber: contactNumber,
+            ContactEmail: contactEmail,
+            Site: site,
+            Address: address,
+            Postcode: postcode,
+            Date: date,
+            Time: time,
+            Engineer: engineer
+        };
+        
+        console.log('Appointment data:', appointmentData);
+        
+        try {
+            const payload = {
+                action: "addJob",
+                data: appointmentData
+            };
+            
+            console.log('=== SENDING ADD JOB REQUEST ===');
+            console.log('Payload:', JSON.stringify(payload, null, 2));
+
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'text/plain;charset=utf-8'
+                },
+                body: JSON.stringify(payload)
+            });
+            
+            console.log('Response status:', response.status);
+            
+            const responseText = await response.text();
+            console.log('Response text:', responseText);
+            
+            let result;
+            try {
+                result = JSON.parse(responseText);
+                console.log('Parsed response:', result);
+            } catch (parseError) {
+                console.error('Failed to parse response as JSON:', parseError);
+                throw new Error('Invalid response from server: ' + responseText.substring(0, 100));
+            }
+            
+            if (result.success) {
+                console.log('=== APPOINTMENT ADDED SUCCESSFULLY ===');
+                console.log('New job Ref:', result.ref);
+                
+                alert(`Appointment added successfully!\nJob Reference: ${result.ref}`);
+                
+                closeAddAppointmentModal();
+                
+                await loadJobs(true);
+                
+                const [year, month, day] = date.split('-');
+                if (!selectedDate || 
+                    (selectedDate.day === Number(day) && 
+                     selectedDate.month === Number(month) && 
+                     selectedDate.year === Number(year))) {
+                    populateEngineersListAndFilterJobs();
+                }
+            } else {
+                throw new Error(result.message || 'Unknown error occurred');
+            }
+        } catch (error) {
+            console.error('=== ADD APPOINTMENT ERROR ===');
+            console.error('Error:', error);
+            alert(`Failed to add appointment: ${error.message}\n\nCheck browser console for details.`);
+        }
+    }
+
     window.addEventListener('load', init);
-</script>
-
-
-
-
-
-
+    </script>
+</body>
+</html>
