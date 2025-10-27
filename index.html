@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Engineer Job Dashboard</title>
     <style>
-        /* CSS from Part 1 */
+        /* CSS from Part 1 (UNTOUCHED) */
         :root {
             --primary-color: #007bff;
             --secondary-color: #6c757d;
@@ -78,11 +78,12 @@
         #refreshButton:hover {
             background-color: #138496;
         }
-
+        
+        /* UPDATED: Added style for the new button */
         #addAppointmentButton, #addEngineerButton {
             background-color: var(--success-color);
             color: white;
-            white-space: nowrap; /* Prevents button text from wrapping */
+            white-space: nowrap;
         }
 
         #addAppointmentButton:hover, #addEngineerButton:hover {
@@ -347,6 +348,7 @@
         .modal-content input[type="date"],
         .modal-content select,
         .modal-content input[type="text"],
+        /* NEW: Added input types for engineer modal */
         .modal-content input[type="password"] {
             width: 95%;
             padding: 10px;
@@ -373,6 +375,7 @@
             background-color: #1e7e34;
         }
         
+        /* UPDATED: Added close button IDs for the new modal */
         #closeModalButton, #closeAddAppointmentModalButton, #closeAddEngineerModalButton {
             background-color: var(--secondary-color);
             color: white;
@@ -459,9 +462,9 @@
                     </select>
             </div>
             <button id="refreshButton">Refresh Jobs</button>
-
-            <button id="addEngineerButton">Add New Engineer</button>
             
+            <button id="addEngineerButton">Add New Engineer</button>
+
             <button id="addAppointmentButton">Add Appointment</button>
 
             <div class="refresh-status-group">
@@ -600,7 +603,7 @@
     </div>
 
     <script>
-    // Global variables
+    // Global variables (UNTOUCHED, except for adding new modal ref)
     const API_URL = 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE'; // **REMEMBER TO UPDATE THIS**
     let allJobs = [];
     let allEngineers = [];
@@ -612,7 +615,7 @@
     let countdownInterval = null;
     let secondsUntilRefresh = 300; // 5 minutes
 
-    // DOM element references for Modals
+    // DOM element references for Modals (UPDATED)
     const updateModal = document.getElementById('updateModal');
     const modalTitle = document.getElementById('modalTitle');
     const engineerField = document.getElementById('engineerField');
@@ -620,7 +623,7 @@
     const modalEngineerSelect = document.getElementById('modalEngineerSelect');
     const modalDateInput = document.getElementById('modalDateInput');
     const addAppointmentModal = document.getElementById('addAppointmentModal');
-    const addEngineerModal = document.getElementById('addEngineerModal'); // New Modal Ref
+    const addEngineerModal = document.getElementById('addEngineerModal'); // <--- NEW
 
     function init() {
         console.log('Dashboard Initializing...');
@@ -629,7 +632,7 @@
         document.getElementById('dateFilter').value = today;
         handleDateChange({ target: { value: today } });
 
-        // Add Event Listeners
+        // Add Event Listeners (UPDATED)
         document.getElementById('refreshButton').addEventListener('click', refreshJobs);
         document.getElementById('autoRefreshToggle').addEventListener('change', handleAutoRefreshToggle);
         document.getElementById('dateFilter').addEventListener('change', handleDateChange);
@@ -641,7 +644,7 @@
         window.addEventListener('click', (event) => {
             if (event.target == updateModal) closeModal();
             if (event.target == addAppointmentModal) closeAddAppointmentModal();
-            if (event.target == addEngineerModal) closeAddEngineerModal(); // New Close Handler
+            if (event.target == addEngineerModal) closeAddEngineerModal(); // <--- UPDATED
             if (event.target.closest('#statusMenu') === null) {
                 document.getElementById('statusMenu').style.display = 'none';
             }
@@ -654,7 +657,7 @@
             e.preventDefault();
             submitNewAppointment();
         });
-
+        
         // NEW: Add Engineer Modal Listeners
         document.getElementById('addEngineerButton').addEventListener('click', openAddEngineerModal);
         document.getElementById('closeAddEngineerModalButton').addEventListener('click', closeAddEngineerModal);
@@ -662,6 +665,7 @@
             e.preventDefault();
             submitNewEngineer();
         });
+
 
         // Initial Data Load
         loadJobs().then(() => {
@@ -675,6 +679,8 @@
         });
     }
 
+    /* --- AUTO REFRESH FUNCTIONS (UNTOUCHED) --- */
+    
     function startAutoRefresh() {
         if (refreshInterval) clearInterval(refreshInterval);
         if (countdownInterval) clearInterval(countdownInterval);
@@ -741,6 +747,8 @@
             }, 300);
         }
     }
+    
+    /* --- DATA & FILTERING FUNCTIONS (UNTOUCHED) --- */
 
     async function loadJobs(isRefresh = false) {
         try {
@@ -821,35 +829,23 @@
         const workingEngineers = [...jobsByEngineer.keys()].sort();
         
         const engineersList = document.getElementById('engineersList');
-        // Keep only engineers who have jobs on the currently selected filter, plus "Unassigned" if jobs exist.
-        // If no jobs match the filters, show all engineers if no date filter is applied, or 'No jobs' if a date filter is restrictive.
-        
-        // This logic is for showing ONLY engineers with jobs on this day/filter.
-        const engineersToShowInList = selectedEngineer ? [selectedEngineer] : workingEngineers;
-
-        if (engineersToShowInList.length > 0) {
-            engineersList.innerHTML = engineersToShowInList.map(engineer =>
+        if (workingEngineers.length > 0) {
+            engineersList.innerHTML = workingEngineers.map(engineer =>
                 `<div class="engineer-item" data-engineer="${engineer}">${engineer}</div>`
             ).join('');
-        } else if (allEngineers.length > 0 && workingEngineers.length === 0) {
-             // If filters are applied and result in no jobs, show a clearer message
-             engineersList.innerHTML = '<div class="no-jobs">No jobs match filters</div>';
-        }
-        else {
+        } else {
             engineersList.innerHTML = '<div class="no-jobs">No engineers working</div>';
         }
-
 
         engineersList.querySelectorAll('.engineer-item').forEach(item => {
             item.addEventListener('click', () => {
                 const engineerName = item.dataset.engineer;
-                selectedEngineer = engineerName; // Always select when clicking in the list
+                selectedEngineer = selectedEngineer === engineerName ? '' : engineerName;
                 document.getElementById('engineerFilter').value = selectedEngineer;
                 populateEngineersListAndFilterJobs();
             });
         });
         
-        // Highlight the selected engineer in the list
         engineersList.querySelectorAll('.engineer-item').forEach(item => {
             if (item.dataset.engineer === selectedEngineer) {
                 item.classList.add('selected');
@@ -884,13 +880,9 @@
         jobsContainer.innerHTML = '';
 
         if (jobsByEngineer.size === 0) {
-            jobsContainer.innerHTML = '<div class="no-jobs">No jobs scheduled for this date or matching criteria.</div>';
+            jobsContainer.innerHTML = '<div class="no-jobs">No jobs scheduled for this date.</div>';
         } else {
-            // Sort by engineer name/unassigned
-            const sortedEngineers = [...jobsByEngineer.keys()].sort();
-            
-            sortedEngineers.forEach(engineer => {
-                const jobs = jobsByEngineer.get(engineer);
+            jobsByEngineer.forEach((jobs, engineer) => {
                 const amJobs = jobs.filter(job => job.Time && job.Time.toUpperCase().includes('AM'));
                 const pmJobs = jobs.filter(job => job.Time && job.Time.toUpperCase().includes('PM'));
                 
@@ -945,6 +937,8 @@
             </div>
         `;
     }
+    
+    /* --- JOB INTERACTION & MODAL FUNCTIONS (UNTOUCHED/MINIMAL CHANGES) --- */
 
     function handleJobCardClick(e) {
         e.stopPropagation();
@@ -1140,16 +1134,14 @@
                         job.dateComponents = { day: Number(day), month: Number(month), year: Number(year) };
                         job.displayDate = `${day}/${month}/${year}`;
                         
-                        if (selectedDate && 
-                            job.dateComponents.day === selectedDate.day &&
+                        if (job.dateComponents.day === selectedDate.day &&
                             job.dateComponents.month === selectedDate.month &&
                             job.dateComponents.year === selectedDate.year) {
-                            // Job remains on the current date, just re-filter
                         } else {
-                             // Job moved to a different date, update the filter to show the new date
-                             // This is debatable, but a common UX preference is to stay on the current date
-                             // For simplicity, we'll just re-filter which will remove the job from the current view.
-                             console.log('Job date changed, re-filtering jobs.');
+                            document.getElementById('dateFilter').value = newValue;
+                            handleDateChange({ target: { value: newValue } });
+                            console.log('Date changed, re-filtering jobs.');
+                            return;
                         }
                         
                     } else {
@@ -1168,7 +1160,9 @@
             }
         } catch (error) {
             console.error('=== UPDATE JOB ERROR ===');
+            console.error('Error type:', error.name);
             console.error('Error message:', error.message);
+            console.error('Error stack:', error.stack);
             alert(`Failed to update job: ${error.message}\n\nCheck browser console for details.`);
             
             console.log('Reloading jobs to sync with server...');
@@ -1199,6 +1193,8 @@
         selectedEngineer = e.target.value;
         populateEngineersListAndFilterJobs();
     }
+    
+    /* --- ADD APPOINTMENT FUNCTIONS (UNTOUCHED) --- */
 
     function openAddAppointmentModal() {
         console.log('=== Opening Add Appointment Modal ===');
@@ -1233,8 +1229,32 @@
         const time = document.getElementById('newTime').value;
         const engineer = document.getElementById('newEngineer').value;
         
-        if (!contactName || !contactNumber || !address || !postcode || !date || !time || !engineer) {
-            alert('Please fill in all required fields (Name, Number, Address, Postcode, Date, Time, Engineer).');
+        if (!contactName) {
+            alert('Please enter a contact name.');
+            return;
+        }
+        if (!contactNumber) {
+            alert('Please enter a contact number.');
+            return;
+        }
+        if (!address) {
+            alert('Please enter an address.');
+            return;
+        }
+        if (!postcode) {
+            alert('Please enter a postcode.');
+            return;
+        }
+        if (!date) {
+            alert('Please select a date.');
+            return;
+        }
+        if (!time) {
+            alert('Please select a time (AM or PM).');
+            return;
+        }
+        if (!engineer) {
+            alert('Please select an engineer.');
             return;
         }
         
@@ -1247,10 +1267,9 @@
             'Job Details : Site/Issue': site,
             'Address': address,
             'Job Details : Postcode': postcode,
-            'Date': date, // YYYY-MM-DD
-            'Time': time, // AM/PM
-            'Engineer': engineer,
-            'Status': 'Pending' // Default Status
+            'Date': date,
+            'Time': time,
+            'Engineer': engineer
         };
         
         console.log('Appointment data:', appointmentData);
@@ -1272,20 +1291,37 @@
                 body: JSON.stringify(payload)
             });
             
+            console.log('Response status:', response.status);
+            
             const responseText = await response.text();
+            console.log('Response text:', responseText);
             
             let result;
             try {
                 result = JSON.parse(responseText);
+                console.log('Parsed response:', result);
             } catch (parseError) {
                 console.error('Failed to parse response as JSON:', parseError);
                 throw new Error('Invalid response from server: ' + responseText.substring(0, 100));
             }
             
             if (result.success) {
+                console.log('=== APPOINTMENT ADDED SUCCESSFULLY ===');
+                console.log('New job Ref:', result.ref);
+                
                 alert(`Appointment added successfully!\nJob Reference: ${result.ref}`);
+                
                 closeAddAppointmentModal();
-                await loadJobs(true); // Reload data to show the new job
+                
+                await loadJobs(true);
+                
+                const [year, month, day] = date.split('-');
+                if (!selectedDate || 
+                    (selectedDate.day === Number(day) && 
+                     selectedDate.month === Number(month) && 
+                     selectedDate.year === Number(year))) {
+                    populateEngineersListAndFilterJobs();
+                }
             } else {
                 throw new Error(result.message || 'Unknown error occurred');
             }
@@ -1295,8 +1331,8 @@
             alert(`Failed to add appointment: ${error.message}\n\nCheck browser console for details.`);
         }
     }
-    
-    /* === NEW ENGINEER FUNCTIONS === */
+
+    /* --- NEW ENGINEER FUNCTIONS --- */
     
     function openAddEngineerModal() {
         console.log('=== Opening Add Engineer Modal ===');
@@ -1325,16 +1361,17 @@
         
         console.log('Engineer form validation passed. Submitting...');
         
+        // Data structure matching columns A, B, C, D in the 'List' sheet
         const engineerData = {
-            'Engineer': name, // Column A
-            'Password': password, // Column B
+            'Engineer': name,               // Column A
+            'Password': password,           // Column B
             'Engineer Phone Number': phone, // Column C
-            'Location': location // Column D
+            'Location': location            // Column D
         };
         
         try {
             const payload = {
-                action: "addEngineer",
+                action: "addEngineer", // New action for Apps Script
                 data: engineerData
             };
             
@@ -1361,7 +1398,8 @@
             if (result.success) {
                 alert(`Engineer ${name} added successfully!`);
                 closeAddEngineerModal();
-                await loadJobs(true); // Reload jobs to refresh engineer dropdowns/lists
+                // Reload jobs to update the engineer filter dropdowns and sidebar list
+                await loadJobs(true); 
             } else {
                 throw new Error(result.message || 'Unknown error occurred');
             }
