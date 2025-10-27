@@ -3,305 +3,365 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Engineer Job Dashboard</title>
+    <title>Job Scheduling Dashboard</title>
     <style>
-        /* CSS from Part 1 (UNTOUCHED) */
-        :root {
-            --primary-color: #007bff;
-            --secondary-color: #6c757d;
-            --success-color: #28a745;
-            --info-color: #17a2b8;
-            --warning-color: #ffc107;
-            --danger-color: #dc3545;
-            --light-color: #f8f9fa;
-            --dark-color: #343a40;
-            --border-color: #dee2e6;
-            --card-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: var(--light-color);
-            color: var(--dark-color);
+            background-color: #f5f7fa;
+            color: #333;
         }
 
-        .dashboard-header {
-            background-color: var(--primary-color);
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 15px 30px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            justify-content: center;
+            margin-bottom: 20px;
+            gap: 20px;
         }
 
-        .dashboard-header h1 {
+        .header-logo {
+            height: 60px;
+            width: auto;
+            border-radius: 50%;
+        }
+
+        .header h1 {
+            text-align: center;
+            font-size: 2em;
             margin: 0;
-            font-size: 1.5rem;
         }
 
-        .controls {
+        .filters {
             display: flex;
-            gap: 15px;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
             align-items: center;
         }
 
         .filter-group label {
-            color: white;
-            margin-right: 5px;
+            margin-bottom: 5px;
+            font-weight: 600;
         }
 
-        .filter-group select,
-        .filter-group input[type="date"] {
-            padding: 8px;
-            border-radius: 5px;
-            border: 1px solid var(--border-color);
-            font-size: 1rem;
-        }
-
-        button {
+        select, input[type="date"] {
             padding: 10px 15px;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            font-size: 16px;
+            min-width: 150px;
+        }
+
+        .add-appointment-btn {
+            background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
             cursor: pointer;
-            font-weight: bold;
-            transition: background-color 0.2s;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(0, 184, 148, 0.3);
         }
 
-        #refreshButton {
-            background-color: var(--info-color);
-            color: white;
+        .add-appointment-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 184, 148, 0.4);
         }
 
-        #refreshButton:hover {
-            background-color: #138496;
-        }
-        
-        /* UPDATED: Added style for the new button */
-        #addAppointmentButton, #addEngineerButton {
-            background-color: var(--success-color);
-            color: white;
-            white-space: nowrap;
+        .refresh-control {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
         }
 
-        #addAppointmentButton:hover, #addEngineerButton:hover {
-            background-color: #1e7e34;
+        .refresh-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
-        .dashboard-body {
+        .refresh-toggle input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .refresh-toggle label {
+            cursor: pointer;
+            margin: 0;
+            color: #333;
+        }
+
+        .refresh-status {
+            font-size: 0.85em;
+            opacity: 0.9;
+        }
+
+        .main-content {
             display: flex;
             padding: 20px;
             gap: 20px;
+            min-height: calc(100vh - 140px);
         }
 
-        .sidebar {
+        .engineers-sidebar {
             width: 200px;
-            background-color: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: var(--card-shadow);
-            flex-shrink: 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            padding: 20px;
             height: fit-content;
         }
 
-        .sidebar h2 {
-            margin-top: 0;
-            font-size: 1.2rem;
-            border-bottom: 2px solid var(--border-color);
-            padding-bottom: 10px;
-            margin-bottom: 10px;
-        }
-
-        #engineersList {
-            max-height: 80vh;
-            overflow-y: auto;
+        .engineers-sidebar h3 {
+            margin-bottom: 15px;
+            color: #667eea;
+            font-size: 1.2em;
         }
 
         .engineer-item {
             padding: 10px;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
+            background: #f8f9ff;
+            border-radius: 8px;
             cursor: pointer;
-            border-radius: 5px;
-            transition: background-color 0.1s, transform 0.1s;
-            font-weight: 500;
+            transition: all 0.3s ease;
+            border-left: 4px solid #667eea;
         }
 
         .engineer-item:hover {
-            background-color: var(--light-color);
+            background: #e8ecff;
+            transform: translateX(5px);
         }
 
         .engineer-item.selected {
-            background-color: var(--primary-color);
+            background: #667eea;
             color: white;
         }
-
-        .main-content {
-            flex-grow: 1;
-            overflow-x: auto;
-        }
-
-        #engineerJobsContainer {
+        
+        .jobs-area {
+            flex: 1;
             display: flex;
             gap: 20px;
-            min-width: 100%;
-            transition: opacity 0.3s;
+            overflow-x: auto;
+            padding-bottom: 20px;
         }
-
-        #engineerJobsContainer.refreshing {
-            opacity: 0.5;
-            pointer-events: none;
-        }
-
+        
         .engineer-column {
-            flex: 1 1 300px;
-            min-width: 300px;
-            background-color: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: var(--card-shadow);
+            min-width: 450px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
         }
 
         .engineer-column h3 {
-            margin-top: 0;
-            color: var(--primary-color);
+            background: linear-gradient(135deg, #74b9ff 0%, #a29bfe 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 12px 12px 0 0;
+            margin: 0;
+            font-size: 1.1em;
             text-align: center;
-            padding-bottom: 10px;
-            border-bottom: 1px solid var(--border-color);
         }
-
+        
         .engineer-job-sections {
             display: flex;
-            flex-direction: column;
-            gap: 15px;
+            flex-grow: 1;
+        }
+        
+        .time-section {
+            flex: 1;
+            padding: 15px;
         }
 
         .time-section h4 {
-            font-size: 1rem;
-            color: var(--secondary-color);
-            border-bottom: 1px dashed var(--border-color);
-            padding-bottom: 5px;
-            margin-top: 0;
+            color: #636e72;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .jobs-container {
+            flex-grow: 1;
         }
 
         .job-card {
-            background-color: var(--light-color);
-            border-radius: 6px;
-            padding: 12px;
-            margin-bottom: 10px;
+            background: white;
+            border: 2px solid #e0e6ed;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
             cursor: pointer;
-            border-left: 5px solid var(--secondary-color);
-            transition: box-shadow 0.15s, transform 0.15s;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
         .job-card:hover {
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-            transform: translateY(-2px);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
         }
 
-        /* Status classes for job-card border */
-        .job-card.complete { border-left-color: var(--success-color); }
-        .job-card.in-progress { border-left-color: var(--info-color); }
-        .job-card.pending { border-left-color: var(--warning-color); }
-        .job-card.cancelled { border-left-color: var(--danger-color); }
-        .job-card.hold { border-left-color: var(--secondary-color); }
+        .job-card.on-route {
+            border-color: #fdcb6e;
+            background: linear-gradient(135deg, #fff9e6 0%, #fef5d3 100%);
+        }
+
+        .job-card.in-progress {
+            border-color: #74b9ff;
+            background: linear-gradient(135deg, #e6f3ff 0%, #d1ecff 100%);
+        }
+
+        .job-card.completed {
+            border-color: #00b894;
+            background: linear-gradient(135deg, #e6fff9 0%, #d1ffed 100%);
+        }
+
+        .job-card.cancelled {
+            border-color: #636e72;
+            background: linear-gradient(135deg, #f1f2f6 0%, #e8eaed 100%);
+        }
+
+        .job-card.aborted {
+            border-color: #e84393;
+            background: linear-gradient(135deg, #ffe6f1 0%, #ffd3e8 100%);
+        }
 
         .job-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 8px;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 5px;
+            margin-bottom: 10px;
         }
 
         .job-ref {
             font-weight: bold;
-            color: var(--dark-color);
+            font-size: 1.1em;
+            color: #2d3436;
         }
 
         .job-status {
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: bold;
-            color: white;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+            text-transform: uppercase;
         }
 
-        .job-status.complete { background-color: var(--success-color); }
-        .job-status.in-progress { background-color: var(--info-color); }
-        .job-status.pending { background-color: var(--warning-color); }
-        .job-status.cancelled { background-color: var(--danger-color); }
-        .job-status.hold { background-color: var(--secondary-color); }
+        .job-status.on-route { background: #fdcb6e; color: #2d3436; }
+        .job-status.in-progress { background: #74b9ff; color: white; }
+        .job-status.completed { background: #00b894; color: white; }
+        .job-status.cancelled { background: #636e72; color: white; }
+        .job-status.aborted { background: #e84393; color: white; }
 
         .job-details {
-            font-size: 0.85rem;
+            margin-bottom: 10px;
         }
 
         .job-detail {
-            margin-bottom: 3px;
+            margin-bottom: 5px;
+            font-size: 0.9em;
         }
 
-        .no-jobs {
-            text-align: center;
-            color: var(--secondary-color);
-            padding: 20px 0;
-            font-style: italic;
+        .job-detail strong {
+            color: #2d3436;
         }
 
-        /* Status Menu */
-        #statusMenu {
+        .status-menu {
             position: absolute;
-            background-color: white;
-            border: 1px solid var(--border-color);
-            border-radius: 5px;
-            box-shadow: 0 6px 12px rgba(0,0,0,0.175);
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            padding: 10px;
             z-index: 1000;
-            min-width: 150px;
-            display: none;
-            padding: 5px 0;
+            border: 1px solid #e0e6ed;
+            min-width: 200px; 
+        }
+
+        .menu-divider {
+            height: 1px;
+            background-color: #e0e6ed;
+            margin: 5px 0;
         }
 
         .status-option {
             padding: 8px 15px;
             cursor: pointer;
-            transition: background-color 0.1s;
-            font-size: 0.9rem;
+            border-radius: 6px;
+            margin-bottom: 5px;
+            transition: background 0.2s ease;
+            font-size: 0.9em;
         }
 
         .status-option:hover {
-            background-color: var(--light-color);
-        }
-        
-        .status-option.header {
-            font-weight: bold;
-            color: var(--primary-color);
-            border-bottom: 1px solid var(--border-color);
-            cursor: default;
+            background: #f8f9ff;
         }
 
-        .status-option.header:hover {
-            background-color: white;
-        }
-        
-        .status-option.action-button {
-            color: var(--primary-color);
-            font-weight: bold;
+        .status-option:last-child {
+            margin-bottom: 0;
         }
 
-        /* Modal Styles */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.1em;
+            color: #636e72;
+        }
+
+        .no-jobs {
+            text-align: center;
+            padding: 40px;
+            color: #636e72;
+            font-style: italic;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .refreshing {
+            animation: pulse 1s ease-in-out;
+        }
+
         .modal {
             display: none;
-            position: fixed;
-            z-index: 1001;
+            position: fixed; 
+            z-index: 2000; 
             left: 0;
             top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.4);
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.4); 
             padding-top: 60px;
         }
 
@@ -309,302 +369,294 @@
             background-color: #fefefe;
             margin: 5% auto;
             padding: 20px;
-            border: 1px solid #888;
+            border-radius: 12px;
             width: 80%;
-            max-width: 500px;
-            border-radius: 8px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            position: relative;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
 
-        .close {
+        .close-button {
             color: #aaa;
             float: right;
             font-size: 28px;
             font-weight: bold;
         }
 
-        .close:hover,
-        .close:focus {
-            color: #000;
+        .close-button:hover,
+        .close-button:focus {
+            color: #333;
             text-decoration: none;
             cursor: pointer;
         }
 
         .modal-content h2 {
-            margin-top: 0;
-            border-bottom: 1px solid var(--border-color);
+            color: #667eea;
+            border-bottom: 2px solid #e0e6ed;
             padding-bottom: 10px;
             margin-bottom: 20px;
+            font-size: 1.5em;
         }
 
         .modal-content label {
             display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            margin-top: 10px;
+            margin-bottom: 8px;
+            font-weight: 600;
         }
 
         .modal-content input[type="date"],
-        .modal-content select,
-        .modal-content input[type="text"],
-        /* NEW: Added input types for engineer modal */
-        .modal-content input[type="password"] {
-            width: 95%;
+        .modal-content select {
+            width: 100%;
             padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            box-shadow: none;
+            box-sizing: border-box;
+        }
+
+        .modal-content button {
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background 0.3s;
+            float: right;
+        }
+
+        .modal-content button:hover {
+            background: #5a6ed0;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
             margin-bottom: 15px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-group label {
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #2d3436;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 10px;
+            border: 1px solid #dfe6e9;
+            border-radius: 6px;
+            font-size: 0.95em;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
         .modal-buttons {
-            text-align: right;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
             margin-top: 20px;
         }
 
         .modal-buttons button {
-            margin-left: 10px;
-        }
-        
-        #saveChangesButton {
-            background-color: var(--success-color);
-            color: white;
-        }
-        
-        #saveChangesButton:hover {
-            background-color: #1e7e34;
-        }
-        
-        /* UPDATED: Added close button IDs for the new modal */
-        #closeModalButton, #closeAddAppointmentModalButton, #closeAddEngineerModalButton {
-            background-color: var(--secondary-color);
-            color: white;
-        }
-        
-        #closeModalButton:hover, #closeAddAppointmentModalButton:hover, #closeAddEngineerModalButton:hover {
-            background-color: #5a6268;
+            float: none;
         }
 
-        /* Auto Refresh Indicator */
-        .refresh-status-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 0.9rem;
+        .cancel-btn {
+            background: #636e72;
         }
 
-        #refreshStatus {
-            color: white;
-            font-weight: bold;
+        .cancel-btn:hover {
+            background: #4a5256;
         }
 
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 40px;
-            height: 20px;
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .header-logo {
+                height: 40px;
+            }
+            
+            .main-content {
+                flex-direction: column;
+                padding: 10px;
+            }
+            
+            .engineers-sidebar {
+                width: 100%;
+                order: 2;
+            }
+            
+            .jobs-area {
+                flex-direction: column;
+            }
         }
-
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 20px;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 14px;
-            width: 14px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-
-        input:checked + .slider {
-            background-color: #2196F3;
-        }
-
-        input:checked + .slider:before {
-            transform: translateX(20px);
-        }
-        /* End of Auto Refresh Indicator */
-
     </style>
 </head>
 <body>
-
-    <div class="dashboard-header">
-        <h1>Engineer Job Scheduler</h1>
-        <div class="controls">
+    <div class="header">
+        <div class="header-content">
+            <img src="https://www.dropbox.com/scl/fi/4eilt1ka4obatkaif4ksg/Screenshot-2025-06-11-132304.png?rlkey=1puz3m5i205n2t4q9n6srfq56&st=00ujjvmz&dl=1" alt="Company Screenshot" class="header-logo">
+            <h1>Job Scheduling Dashboard</h1>
+            <img src="https://www.dropbox.com/scl/fi/67vmxu3kngvgkm1mf5tcp/Stark.jpg?rlkey=5gz9fhspn3t1aiu03ksob3r2c&st=8ppqfpwr&dl=1" alt="Stark Logo" class="header-logo">
+        </div>
+        <div class="filters">
             <div class="filter-group">
-                <label for="dateFilter">Date:</label>
+                <button class="add-appointment-btn" onclick="openAddAppointmentModal()">➕ Add Appointment</button>
+            </div>
+            <div class="filter-group">
+                <label for="dateFilter">Select Date:</label>
                 <input type="date" id="dateFilter">
             </div>
             <div class="filter-group">
-                <label for="engineerFilter">Engineer:</label>
+                <label for="engineerFilter">Select Engineer:</label>
                 <select id="engineerFilter">
                     <option value="">All Engineers</option>
-                    </select>
+                </select>
             </div>
-            <button id="refreshButton">Refresh Jobs</button>
-            
-            <button id="addEngineerButton">Add New Engineer</button>
-
-            <button id="addAppointmentButton">Add Appointment</button>
-
-            <div class="refresh-status-group">
-                <label for="autoRefreshToggle" style="margin: 0; color: white;">Auto Refresh:</label>
-                <label class="switch">
-                    <input type="checkbox" id="autoRefreshToggle" checked>
-                    <span class="slider"></span>
-                </label>
-                <span id="refreshStatus">Loading...</span>
+            <div class="filter-group">
+                <div class="refresh-control">
+                    <div class="refresh-toggle">
+                        <input type="checkbox" id="autoRefreshToggle" checked>
+                        <label for="autoRefreshToggle">Auto-Refresh (30s)</label>
+                    </div>
+                    <div class="refresh-status" id="refreshStatus">Next refresh in 30s</div>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="dashboard-body">
-        <div class="sidebar">
-            <h2>Engineers</h2>
-            <div id="engineersList">
-                </div>
+    <div class="main-content">
+        <div class="engineers-sidebar">
+            <h3>Working Today</h3>
+            <div id="engineersList"></div>
         </div>
-        <div class="main-content">
-            <div id="engineerJobsContainer">
-                </div>
+
+        <div class="jobs-area" id="engineerJobsContainer">
+            <div class="loading">Loading jobs...</div>
         </div>
     </div>
 
-    <div id="statusMenu">
-        <div class="status-option header">Change Status</div>
-        <div class="status-option" data-action="status" data-status="Complete">Complete</div>
-        <div class="status-option" data-action="status" data-status="In Progress">In Progress</div>
-        <div class="status-option" data-action="status" data-status="Pending">Pending</div>
-        <div class="status-option" data-action="status" data-status="Cancelled">Cancelled</div>
-        <div class="status-option" data-action="status" data-status="Hold">Hold</div>
-        <div class="status-option header">Reassign</div>
-        <div class="status-option action-button" data-action="engineer">Change Engineer</div>
-        <div class="status-option action-button" data-action="date">Change Date</div>
+    <div id="statusMenu" class="status-menu" style="display: none;">
+        <div class="status-option" data-action="status" data-status="On Route">🚗 Change Status: On Route</div>
+        <div class="status-option" data-action="status" data-status="In Progress">🔧 Change Status: In Progress</div>
+        <div class="status-option" data-action="status" data-status="Completed">✅ Change Status: Completed</div>
+        <div class="status-option" data-action="status" data-status="Cancelled">❌ Change Status: Cancelled</div>
+        <div class="status-option" data-action="status" data-status="Aborted">⚠️ Change Status: Aborted</div>
+        <div class="menu-divider"></div>
+        <div class="status-option" data-action="engineer">👷 Change Engineer</div>
+        <div class="status-option" data-action="date">📅 Change Date</div>
     </div>
 
     <div id="updateModal" class="modal">
         <div class="modal-content">
-            <span class="close" id="closeModalButton">&times;</span>
-            <h2 id="modalTitle">Update Job</h2>
-            
+            <span class="close-button" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle">Update Job #</h2>
             <div id="engineerField">
                 <label for="modalEngineerSelect">Select New Engineer:</label>
                 <select id="modalEngineerSelect"></select>
             </div>
-            
             <div id="dateField" style="display:none;">
                 <label for="modalDateInput">Select New Date:</label>
                 <input type="date" id="modalDateInput">
             </div>
-
-            <div class="modal-buttons">
-                <button id="saveChangesButton">Save Changes</button>
-            </div>
+            <button onclick="saveChanges()">Save Changes</button>
         </div>
     </div>
-    
+
     <div id="addAppointmentModal" class="modal">
-        <div class="modal-content">
-            <span class="close" id="closeAddAppointmentModalButton">&times;</span>
-            <h2>Add New Job Appointment</h2>
-            <form id="addAppointmentForm">
-                <label for="newContactName">Contact Name:</label>
-                <input type="text" id="newContactName" required>
+        <div class="modal-content" style="max-width: 600px;">
+            <span class="close-button" onclick="closeAddAppointmentModal()">&times;</span>
+            <h2>Add New Appointment</h2>
+            
+            <form id="addAppointmentForm" onsubmit="return false;">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="newContactName">Contact Name *</label>
+                        <input type="text" id="newContactName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="newContactNumber">Contact Number *</label>
+                        <input type="tel" id="newContactNumber" required>
+                    </div>
+                </div>
 
-                <label for="newContactNumber">Contact Number:</label>
-                <input type="text" id="newContactNumber" required>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="newContactEmail">Contact Email</label>
+                        <input type="email" id="newContactEmail">
+                    </div>
+                    <div class="form-group">
+                        <label for="newSite">Site</label>
+                        <input type="text" id="newSite">
+                    </div>
+                </div>
 
-                <label for="newContactEmail">Contact Email (Optional):</label>
-                <input type="text" id="newContactEmail">
-                
-                <label for="newSite">Site/Issue Details (Optional):</label>
-                <input type="text" id="newSite">
+                <div class="form-row">
+                    <div class="form-group full-width">
+                        <label for="newAddress">Address *</label>
+                        <input type="text" id="newAddress" required>
+                    </div>
+                </div>
 
-                <label for="newAddress">Address:</label>
-                <input type="text" id="newAddress" required>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="newPostcode">Postcode *</label>
+                        <input type="text" id="newPostcode" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="newDate">Date *</label>
+                        <input type="date" id="newDate" required>
+                    </div>
+                </div>
 
-                <label for="newPostcode">Postcode:</label>
-                <input type="text" id="newPostcode" required>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="newTime">Time *</label>
+                        <select id="newTime" required>
+                            <option value="">Select Time</option>
+                            <option value="AM">AM</option>
+                            <option value="PM">PM</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="newEngineer">Engineer *</label>
+                        <select id="newEngineer" required>
+                            <option value="">Select Engineer</option>
+                        </select>
+                    </div>
+                </div>
 
-                <label for="newDate">Date:</label>
-                <input type="date" id="newDate" required>
-
-                <label for="newTime">Time Slot:</label>
-                <select id="newTime" required>
-                    <option value="">Select Time</option>
-                    <option value="AM">AM</option>
-                    <option value="PM">PM</option>
-                </select>
-
-                <label for="newEngineer">Engineer:</label>
-                <select id="newEngineer" required>
-                    <option value="">Select Engineer</option>
-                    </select>
+                <div class="modal-buttons">
+                    <button type="button" class="cancel-btn" onclick="closeAddAppointmentModal()">Cancel</button>
+                    <button type="button" onclick="submitNewAppointment()">Add Appointment</button>
+                </div>
             </form>
-
-            <div class="modal-buttons">
-                <button id="submitNewAppointmentButton">Add Appointment</button>
-            </div>
-        </div>
-    </div>
-    
-    <div id="addEngineerModal" class="modal">
-        <div class="modal-content">
-            <span class="close" id="closeAddEngineerModalButton">&times;</span>
-            <h2>Add New Engineer</h2>
-            <form id="addEngineerForm">
-                <label for="engineerName">Name:</label>
-                <input type="text" id="engineerName" required>
-
-                <label for="engineerPassword">Password:</label>
-                <input type="password" id="engineerPassword" required>
-
-                <label for="engineerPhoneNumber">Phone Number:</label>
-                <input type="text" id="engineerPhoneNumber" required>
-
-                <label for="engineerLocation">Location:</label>
-                <select id="engineerLocation" required>
-                    <option value="">Select Location</option>
-                    <option value="North East">North East</option>
-                    <option value="North West">North West</option>
-                    <option value="Midlands">Midlands</option>
-                    <option value="Eastern">Eastern</option>
-                    <option value="South East">South East</option>
-                    <option value="South West">South West</option>
-                    <option value="London">London</option>
-                    <option value="Wales">Wales</option>
-                </select>
-            </form>
-
-            <div class="modal-buttons">
-                <button id="submitNewEngineerButton" class="modal-button">Add Engineer</button>
-            </div>
         </div>
     </div>
 
     <script>
-    // Global variables (UNTOUCHED, except for adding new modal ref)
-    const API_URL = 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE'; // **REMEMBER TO UPDATE THIS**
+    const API_URL = 'https://script.google.com/macros/s/AKfycbxZGEPMjBLN9C0iCPINNL7N9X_rYefXFXz5eBotIKomMsue4_8u9Lw9yVF1N2-T4C-B/exec';
+    
     let allJobs = [];
     let allEngineers = [];
     let selectedDate = '';
@@ -613,9 +665,9 @@
     let currentJobRef = null;
     let refreshInterval = null;
     let countdownInterval = null;
-    let secondsUntilRefresh = 300; // 5 minutes
+    let secondsUntilRefresh = 30;
+    const REFRESH_INTERVAL_MS = 30000;
 
-    // DOM element references for Modals (UPDATED)
     const updateModal = document.getElementById('updateModal');
     const modalTitle = document.getElementById('modalTitle');
     const engineerField = document.getElementById('engineerField');
@@ -623,88 +675,67 @@
     const modalEngineerSelect = document.getElementById('modalEngineerSelect');
     const modalDateInput = document.getElementById('modalDateInput');
     const addAppointmentModal = document.getElementById('addAppointmentModal');
-    const addEngineerModal = document.getElementById('addEngineerModal'); // <--- NEW
 
-    function init() {
-        console.log('Dashboard Initializing...');
-        // Set the date filter to today's date
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('dateFilter').value = today;
-        handleDateChange({ target: { value: today } });
-
-        // Add Event Listeners (UPDATED)
-        document.getElementById('refreshButton').addEventListener('click', refreshJobs);
-        document.getElementById('autoRefreshToggle').addEventListener('change', handleAutoRefreshToggle);
-        document.getElementById('dateFilter').addEventListener('change', handleDateChange);
-        document.getElementById('engineerFilter').addEventListener('change', handleEngineerChange);
+    async function init() {
+        const today = new Date();
+        const todayString = today.toISOString().split('T')[0];
+        document.getElementById('dateFilter').value = todayString;
         
-        // Update Modal Listeners
-        document.getElementById('saveChangesButton').addEventListener('click', saveChanges);
-        document.getElementById('closeModalButton').addEventListener('click', closeModal);
-        window.addEventListener('click', (event) => {
-            if (event.target == updateModal) closeModal();
-            if (event.target == addAppointmentModal) closeAddAppointmentModal();
-            if (event.target == addEngineerModal) closeAddEngineerModal(); // <--- UPDATED
-            if (event.target.closest('#statusMenu') === null) {
-                document.getElementById('statusMenu').style.display = 'none';
-            }
-        });
+        selectedDate = {
+            day: today.getDate(),
+            month: today.getMonth() + 1,
+            year: today.getFullYear()
+        };
         
-        // Add Appointment Modal Listeners
-        document.getElementById('addAppointmentButton').addEventListener('click', openAddAppointmentModal);
-        document.getElementById('closeAddAppointmentModalButton').addEventListener('click', closeAddAppointmentModal);
-        document.getElementById('submitNewAppointmentButton').addEventListener('click', (e) => {
-            e.preventDefault();
-            submitNewAppointment();
-        });
-        
-        // NEW: Add Engineer Modal Listeners
-        document.getElementById('addEngineerButton').addEventListener('click', openAddEngineerModal);
-        document.getElementById('closeAddEngineerModalButton').addEventListener('click', closeAddEngineerModal);
-        document.getElementById('submitNewEngineerButton').addEventListener('click', (e) => {
-            e.preventDefault();
-            submitNewEngineer();
-        });
-
-
-        // Initial Data Load
-        loadJobs().then(() => {
-            // Start auto refresh only after initial load is complete
-            const autoRefreshToggle = document.getElementById('autoRefreshToggle');
-            if (autoRefreshToggle.checked) {
-                startAutoRefresh();
-            } else {
-                document.getElementById('refreshStatus').textContent = 'Auto-refresh disabled';
-            }
-        });
+        await loadJobs();
+        setupEventListeners();
+        startAutoRefresh();
     }
 
-    /* --- AUTO REFRESH FUNCTIONS (UNTOUCHED) --- */
-    
-    function startAutoRefresh() {
-        if (refreshInterval) clearInterval(refreshInterval);
-        if (countdownInterval) clearInterval(countdownInterval);
-
-        const refreshRate = 5 * 60 * 1000; // 5 minutes
-        secondsUntilRefresh = refreshRate / 1000;
-        updateRefreshStatus();
-
-        // Start the countdown timer
-        countdownInterval = setInterval(() => {
-            secondsUntilRefresh--;
-            if (secondsUntilRefresh < 0) {
-                secondsUntilRefresh = refreshRate / 1000 - 1; // Reset before next full interval
+    function setupEventListeners() {
+        document.getElementById('dateFilter').addEventListener('change', handleDateChange);
+        document.getElementById('engineerFilter').addEventListener('change', handleEngineerChange);
+        document.getElementById('autoRefreshToggle').addEventListener('change', handleAutoRefreshToggle);
+        
+        document.addEventListener('click', (e) => {
+            const statusMenu = document.getElementById('statusMenu');
+            if (!statusMenu.contains(e.target) && !e.target.closest('.job-card')) {
+                statusMenu.style.display = 'none';
             }
+        });
+        
+        window.onclick = function(event) {
+            if (event.target == updateModal) {
+                closeModal();
+            }
+            if (event.target == addAppointmentModal) {
+                closeAddAppointmentModal();
+            }
+        }
+    }
+
+    function startAutoRefresh() {
+        const autoRefreshEnabled = document.getElementById('autoRefreshToggle').checked;
+        
+        if (autoRefreshEnabled) {
+            secondsUntilRefresh = 30;
             updateRefreshStatus();
-        }, 1000);
-
-        // Start the main refresh interval
-        refreshInterval = setInterval(() => {
-            refreshJobs();
-            secondsUntilRefresh = refreshRate / 1000; // Reset countdown on actual refresh
-        }, refreshRate);
-
-        document.getElementById('refreshStatus').textContent = `Next refresh in ${secondsUntilRefresh}s`;
+            
+            refreshInterval = setInterval(async () => {
+                await refreshJobs();
+                secondsUntilRefresh = 30;
+            }, REFRESH_INTERVAL_MS);
+            
+            countdownInterval = setInterval(() => {
+                secondsUntilRefresh--;
+                updateRefreshStatus();
+                if (secondsUntilRefresh <= 0) {
+                    secondsUntilRefresh = 30;
+                }
+            }, 1000);
+        } else {
+            stopAutoRefresh();
+        }
     }
 
     function stopAutoRefresh() {
@@ -747,8 +778,6 @@
             }, 300);
         }
     }
-    
-    /* --- DATA & FILTERING FUNCTIONS (UNTOUCHED) --- */
 
     async function loadJobs(isRefresh = false) {
         try {
@@ -865,8 +894,8 @@
             let dateMatch = true;
             if (selectedDate && selectedDate.day && selectedDate.month && selectedDate.year) {
                 dateMatch = jobDate.day === selectedDate.day && 
-                                 jobDate.month === selectedDate.month && 
-                                 jobDate.year === selectedDate.year;
+                             jobDate.month === selectedDate.month && 
+                             jobDate.year === selectedDate.year;
             }
             
             const engineerMatch = !selectedEngineer || jobEngineer === selectedEngineer;
@@ -937,8 +966,6 @@
             </div>
         `;
     }
-    
-    /* --- JOB INTERACTION & MODAL FUNCTIONS (UNTOUCHED/MINIMAL CHANGES) --- */
 
     function handleJobCardClick(e) {
         e.stopPropagation();
@@ -1193,8 +1220,6 @@
         selectedEngineer = e.target.value;
         populateEngineersListAndFilterJobs();
     }
-    
-    /* --- ADD APPOINTMENT FUNCTIONS (UNTOUCHED) --- */
 
     function openAddAppointmentModal() {
         console.log('=== Opening Add Appointment Modal ===');
@@ -1261,15 +1286,15 @@
         console.log('Form validation passed. Submitting...');
         
         const appointmentData = {
-            'Appointment Contact Name': contactName,
-            'Appointment Contact Number': contactNumber,
-            'Appointment Contact Email': contactEmail,
-            'Job Details : Site/Issue': site,
-            'Address': address,
-            'Job Details : Postcode': postcode,
-            'Date': date,
-            'Time': time,
-            'Engineer': engineer
+            ContactName: contactName,
+            ContactNumber: contactNumber,
+            ContactEmail: contactEmail,
+            Site: site,
+            Address: address,
+            Postcode: postcode,
+            Date: date,
+            Time: time,
+            Engineer: engineer
         };
         
         console.log('Appointment data:', appointmentData);
@@ -1332,86 +1357,13 @@
         }
     }
 
-    /* --- NEW ENGINEER FUNCTIONS --- */
-    
-    function openAddEngineerModal() {
-        console.log('=== Opening Add Engineer Modal ===');
-        document.getElementById('addEngineerForm').reset();
-        addEngineerModal.style.display = 'block';
-    }
-
-    function closeAddEngineerModal() {
-        console.log('=== Closing Add Engineer Modal ===');
-        addEngineerModal.style.display = 'none';
-        document.getElementById('addEngineerForm').reset();
-    }
-
-    async function submitNewEngineer() {
-        console.log('=== Submit New Engineer Called ===');
-        
-        const name = document.getElementById('engineerName').value.trim();
-        const password = document.getElementById('engineerPassword').value;
-        const phone = document.getElementById('engineerPhoneNumber').value.trim();
-        const location = document.getElementById('engineerLocation').value;
-        
-        if (!name || !password || !phone || !location) {
-            alert('Please fill in all engineer details.');
-            return;
-        }
-        
-        console.log('Engineer form validation passed. Submitting...');
-        
-        // Data structure matching columns A, B, C, D in the 'List' sheet
-        const engineerData = {
-            'Engineer': name,               // Column A
-            'Password': password,           // Column B
-            'Engineer Phone Number': phone, // Column C
-            'Location': location            // Column D
-        };
-        
-        try {
-            const payload = {
-                action: "addEngineer", // New action for Apps Script
-                data: engineerData
-            };
-            
-            console.log('=== SENDING ADD ENGINEER REQUEST ===');
-
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'text/plain;charset=utf-8'
-                },
-                body: JSON.stringify(payload)
-            });
-            
-            const responseText = await response.text();
-            
-            let result;
-            try {
-                result = JSON.parse(responseText);
-            } catch (parseError) {
-                console.error('Failed to parse response as JSON:', parseError);
-                throw new Error('Invalid response from server: ' + responseText.substring(0, 100));
-            }
-            
-            if (result.success) {
-                alert(`Engineer ${name} added successfully!`);
-                closeAddEngineerModal();
-                // Reload jobs to update the engineer filter dropdowns and sidebar list
-                await loadJobs(true); 
-            } else {
-                throw new Error(result.message || 'Unknown error occurred');
-            }
-        } catch (error) {
-            console.error('=== ADD ENGINEER ERROR ===');
-            console.error('Error:', error);
-            alert(`Failed to add new engineer: ${error.message}\n\nCheck browser console for details.`);
-        }
-    }
-
-
     window.addEventListener('load', init);
     </script>
 </body>
 </html>
+
+
+
+
+
+
