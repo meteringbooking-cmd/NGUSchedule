@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -73,8 +74,7 @@
             min-width: 150px;
         }
 
-        .add-appointment-btn {
-            background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
+        .add-appointment-btn, .add-engineer-btn {
             color: white;
             padding: 12px 24px;
             border: none;
@@ -86,9 +86,22 @@
             box-shadow: 0 4px 10px rgba(0, 184, 148, 0.3);
         }
 
-        .add-appointment-btn:hover {
+        .add-appointment-btn {
+            background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
+        }
+
+        .add-engineer-btn {
+            background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+            box-shadow: 0 4px 10px rgba(108, 92, 231, 0.3);
+        }
+
+        .add-appointment-btn:hover, .add-engineer-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 15px rgba(0, 184, 148, 0.4);
+        }
+
+        .add-engineer-btn:hover {
+            box-shadow: 0 6px 15px rgba(108, 92, 231, 0.4);
         }
 
         .refresh-control {
@@ -524,6 +537,9 @@
                 <button class="add-appointment-btn" onclick="openAddAppointmentModal()">➕ Add Appointment</button>
             </div>
             <div class="filter-group">
+                <button class="add-engineer-btn" onclick="openAddEngineerModal()">👷 Add New Engineer</button>
+            </div>
+            <div class="filter-group">
                 <label for="dateFilter">Select Date:</label>
                 <input type="date" id="dateFilter">
             </div>
@@ -654,8 +670,60 @@
         </div>
     </div>
 
+    <div id="addEngineerModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <span class="close-button" onclick="closeAddEngineerModal()">&times;</span>
+            <h2>Add New Engineer</h2>
+            
+            <form id="addEngineerForm" onsubmit="return false;">
+                <div class="form-row">
+                    <div class="form-group full-width">
+                        <label for="engineerName">Name *</label>
+                        <input type="text" id="engineerName" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group full-width">
+                        <label for="engineerPassword">Password *</label>
+                        <input type="password" id="engineerPassword" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group full-width">
+                        <label for="engineerPhone">Engineer Phone Number *</label>
+                        <input type="tel" id="engineerPhone" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group full-width">
+                        <label for="engineerLocation">Location *</label>
+                        <select id="engineerLocation" required>
+                            <option value="">Select Location</option>
+                            <option value="North East">North East</option>
+                            <option value="North West">North West</option>
+                            <option value="Midlands">Midlands</option>
+                            <option value="Eastern">Eastern</option>
+                            <option value="South East">South East</option>
+                            <option value="South West">South West</option>
+                            <option value="London">London</option>
+                            <option value="Wales">Wales</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="modal-buttons">
+                    <button type="button" class="cancel-btn" onclick="closeAddEngineerModal()">Cancel</button>
+                    <button type="button" onclick="submitNewEngineer()">Add Engineer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbx3cGhe2fKBTzPNMAhBMcBkOcGtbkVfLu9BReO18fOkIqSNjgcQGYsNi_ZQAHRlnvtR/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbyemueYCqRTUvY7Btd9k1wbnwZCWYO02wA0atylNa_cmOr05N5vuUP-yiWRKsWxJDh6/exec';
     
     let allJobs = [];
     let allEngineers = [];
@@ -675,6 +743,7 @@
     const modalEngineerSelect = document.getElementById('modalEngineerSelect');
     const modalDateInput = document.getElementById('modalDateInput');
     const addAppointmentModal = document.getElementById('addAppointmentModal');
+    const addEngineerModal = document.getElementById('addEngineerModal');
 
     async function init() {
         const today = new Date();
@@ -710,6 +779,9 @@
             }
             if (event.target == addAppointmentModal) {
                 closeAddAppointmentModal();
+            }
+            if (event.target == addEngineerModal) {
+                closeAddEngineerModal();
             }
         }
     }
@@ -1361,6 +1433,7 @@
     </script>
 </body>
 </html>
+
 
 
 
