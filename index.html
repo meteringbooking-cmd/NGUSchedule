@@ -6,8 +6,6 @@
     <title>Job Scheduling Dashboard</title>
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-    <!-- Sortable.js -->
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -257,12 +255,10 @@
             border-radius: 12px;
             padding: 15px;
             margin-bottom: 15px;
-            cursor: grab;
+            cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
-
-        .job-card:active { cursor: grabbing; }
 
         .job-card:hover {
             transform: translateY(-3px);
@@ -548,14 +544,33 @@
 
         /* Map Modal */
         #mapModal .modal-content {
-            max-width: 90%;
-            width: 1000px;
+            max-width: 95%;
+            width: 1100px;
+            padding: 15px;
+        }
+
+        #mapFilterBar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        #mapFilterBar label {
+            font-weight: 600;
+            color: #2d3436;
+        }
+
+        #mapFilterBar select {
+            min-width: 200px;
         }
 
         #mapContainer {
             height: 600px;
             border-radius: 12px;
-            margin: 20px 0;
+            margin-top: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
         @media (max-width: 768px) {
@@ -584,11 +599,16 @@
 
             #mapModal .modal-content {
                 width: 95%;
-                margin: 10% auto;
+                margin: 5% auto;
             }
 
             #mapContainer {
                 height: 400px;
+            }
+
+            #mapFilterBar {
+                flex-direction: column;
+                align-items: stretch;
             }
         }
     </style>
@@ -812,11 +832,26 @@
         </div>
     </div>
 
-    <!-- Map Modal -->
+    <!-- MAP MODAL -->
     <div id="mapModal" class="modal">
         <div class="modal-content">
             <span class="close-button" onclick="closeMapModal()">&times;</span>
-            <h2>Job Locations Map</h2>
+            <h2>Engineer Route Map</h2>
+
+            <div id="mapFilterBar">
+                <div class="form-group">
+                    <label for="mapEngineerSelect">Select Engineer:</label>
+                    <select id="mapEngineerSelect">
+                        <option value="">-- All Engineers --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="mapDateSelect">Date:</label>
+                    <input type="date" id="mapDateSelect">
+                </div>
+                <button id="refreshMapBtn" style="padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer;">Refresh Map</button>
+            </div>
+
             <div id="mapContainer"></div>
             <div class="modal-buttons">
                 <button type="button" class="cancel-btn" onclick="closeMapModal()">Close</button>
@@ -840,12 +875,15 @@ let countdownInterval = null;
 let secondsUntilRefresh = 30;
 const REFRESH_INTERVAL_MS = 30000;
 let map = null;
+let mapMarkers = [];
+let mapPolyline = null;
 
 // === INIT ===
 async function init() {
     const today = new Date();
     const todayString = today.toISOString().split('T')[0];
     document.getElementById('dateFilter').value = todayString;
+    document.getElementById('mapDateSelect').value = todayString;
     
     selectedDate = {
         day: today.getDate(),
@@ -857,7 +895,6 @@ async function init() {
     setupEventListeners();
     startAutoRefresh();
 
-    // Map View Button
     document.getElementById('mapViewBtn').addEventListener('click', openMapModal);
 }
 
@@ -867,6 +904,7 @@ function setupEventListeners() {
     document.getElementById('engineerFilter').addEventListener('change', handleEngineerChange);
     document.getElementById('autoRefreshToggle').addEventListener('change', handleAutoRefreshToggle);
     document.getElementById('assignJobsBtn').addEventListener('click', openAssignJobsModal);
+    document.getElementById('refreshMapBtn').addEventListener('click', updateMapView);
     
     document.addEventListener('click', (e) => {
         const statusMenu = document.getElementById('statusMenu');
@@ -939,6 +977,7 @@ async function loadJobs(isRefresh = false) {
         populateEngineersFilter();
         populateEngineersListAndFilterJobs();
         updateAssignJobsButton();
+        populateMapEngineerSelect();
     } catch (error) {
         console.error('Error loading jobs:', error);
         document.getElementById('engineerJobsContainer').innerHTML = '<div class="no-jobs">Error loading jobs.</div>';
@@ -958,6 +997,12 @@ function populateNewEngineerSelect() {
     allEngineers.forEach(e => sel.innerHTML += `<option value="${e}">${e}</option>`);
 }
 
+function populateMapEngineerSelect() {
+    const sel = document.getElementById('mapEngineerSelect');
+    sel.innerHTML = '<option value="">-- All Engineers --</option>';
+    allEngineers.forEach(e => sel.innerHTML += `<option value="${e}">${e}</option>`);
+}
+
 function populateEngineersListAndFilterJobs() {
     const filtered = filterJobs();
     const byEng = filtered.reduce((acc, j) => {
@@ -967,7 +1012,6 @@ function populateEngineersListAndFilterJobs() {
         return acc;
     }, {});
 
-    // Sidebar
     const list = document.getElementById('engineersList');
     const working = Object.keys(byEng).sort();
     list.innerHTML = working.length ? working.map(e => `<div class="engineer-item" data-engineer="${e}">${e}</div>`).join('') : '<div class="no-jobs">No engineers</div>';
@@ -1022,23 +1066,6 @@ function displayJobs(jobsByEngineer) {
         container.appendChild(col);
     });
 
-    // === DRAG & DROP ===
-    document.querySelectorAll('.jobs-container').forEach(container => {
-        new Sortable(container, {
-            group: 'jobs',
-            animation: 150,
-            onEnd: async (evt) => {
-                const ref = evt.item.dataset.ref;
-                const newEng = evt.to.closest('.engineer-column').querySelector('h3').textContent;
-                const newTime = evt.to.closest('.time-section').querySelector('h4').textContent.includes('AM') ? 'AM' : 'PM';
-                await updateJobField(ref, 'Engineer', newEng, 'Engineer');
-                if (evt.item.querySelector('.job-detail:contains("Time")')) {
-                    await updateJobField(ref, 'Time', newTime, 'Time');
-                }
-            }
-        });
-    });
-
     container.querySelectorAll('.job-card').forEach(card => {
         card.addEventListener('click', handleJobCardClick);
     });
@@ -1068,37 +1095,84 @@ function createJobCard(job) {
 // === MAP VIEW ===
 function openMapModal() {
     document.getElementById('mapModal').style.display = 'block';
+    document.getElementById('mapDateSelect').value = document.getElementById('dateFilter').value;
+    document.getElementById('mapEngineerSelect').value = selectedEngineer;
+
     if (!map) {
         map = L.map('mapContainer').setView([54.5, -4], 6);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
     }
-    addJobsToMap();
+
+    updateMapView();
 }
 
-async function addJobsToMap() {
-    if (!map) return;
-    map.eachLayer(l => l instanceof L.Marker && map.removeLayer(l));
-    const jobs = filterJobs();
-    for (const j of jobs) {
-        if (!j.Address || !j['Job Details : Postcode']) continue;
-        const q = encodeURIComponent(`${j.Address} ${j['Job Details : Postcode']}`);
-        try {
-            const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1`);
-            const data = await res.json();
-            if (data[0]) {
-                const m = L.marker([data[0].lat, data[0].lon]).addTo(map);
-                m.bindPopup(`<b>#${j.Ref}</b><br>${j['Appointment Contact Name']}<br>${j.Address}<br>${j.displayDate} ${j.Time}<br>Engineer: ${j.Engineer || 'Unassigned'}`);
-            }
-        } catch (e) { console.error('Geocode failed:', e); }
+async function updateMapView() {
+    const selectedEng = document.getElementById('mapEngineerSelect').value;
+    const dateVal = document.getElementById('mapDateSelect').value;
+    if (!dateVal) return alert('Please select a date.');
+
+    const [y, m, d] = dateVal.split('-');
+    const targetDate = { day: +d, month: +m, year: +y };
+
+    const jobs = allJobs.filter(j => {
+        const dateOk = j.dateComponents.day === targetDate.day &&
+                      j.dateComponents.month === targetDate.month &&
+                      j.dateComponents.year === targetDate.year;
+        const engOk = !selectedEng || j.Engineer === selectedEng;
+        return dateOk && engOk && j['Job Details : Postcode'];
+    });
+
+    // Clear old markers and polyline
+    mapMarkers.forEach(m => map.removeLayer(m));
+    mapMarkers = [];
+    if (mapPolyline) map.removeLayer(mapPolyline);
+
+    if (jobs.length === 0) {
+        alert('No jobs with postcode found for this selection.');
+        return;
     }
-    if (jobs.length) map.fitBounds(map.getBounds().pad(0.1));
+
+    const coords = [];
+    for (const job of jobs) {
+        const postcode = job['Job Details : Postcode'].trim();
+        try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(postcode)}&format=json&addressdetails=1&limit=1`);
+            const data = await res.json();
+            if (data && data[0]) {
+                const lat = parseFloat(data[0].lat);
+                const lng = parseFloat(data[0].lon);
+                const marker = L.marker([lat, lng]).addTo(map);
+                marker.bindPopup(`
+                    <b>Job #${job.Ref}</b><br>
+                    ${job['Appointment Contact Name']}<br>
+                    ${job.Address}<br>
+                    <b>Postcode:</b> ${postcode}<br>
+                    <b>Time:</b> ${job.Time || 'N/A'}<br>
+                    <b>Engineer:</b> ${job.Engineer || 'Unassigned'}
+                `);
+                mapMarkers.push(marker);
+                coords.push([lat, lng]);
+            }
+        } catch (e) {
+            console.error('Geocode failed for:', postcode, e);
+        }
+    }
+
+    if (coords.length > 0) {
+        map.fitBounds(L.latLngBounds(coords).pad(0.2));
+        if (coords.length > 1) {
+            mapPolyline = L.polyline(coords, { color: '#667eea', weight: 4, opacity: 0.7 }).addTo(map);
+        }
+    }
 }
 
 function closeMapModal() {
     document.getElementById('mapModal').style.display = 'none';
 }
 
-// === REST OF YOUR FUNCTIONS (unchanged) ===
+// === REMAINING FUNCTIONS (unchanged) ===
 function handleJobCardClick(e) { /* ... your existing code ... */ }
 function handleMenuOptionClick(option) { /* ... */ }
 function openModal(type) { /* ... */ }
