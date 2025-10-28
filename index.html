@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -693,7 +692,7 @@
                 <div class="form-row">
                     <div class="form-group full-width">
                         <label for="engineerPhone">Engineer Phone Number *</label>
-                        <input type="tel" id="engineerPhone" required>
+                        <input type="tel" id="engineerPhone" required placeholder="+44 or 07xxx">
                     </div>
                 </div>
 
@@ -1125,17 +1124,11 @@
     }
 
     async function saveChanges() {
-        console.log('=== saveChanges CALLED ===');
-        
         const type = updateModal.dataset.updateType;
         let newValue, apiField, clientField;
         const jobRef = currentJobRef;
 
-        console.log('Modal update type:', type);
-        console.log('Current job ref:', jobRef);
-
         if (!jobRef) {
-            console.error('No job reference found!');
             alert('Error: No job selected. Please try again.');
             return;
         }
@@ -1144,8 +1137,6 @@
             newValue = modalEngineerSelect.value;
             apiField = 'Engineer';
             clientField = 'Engineer';
-            
-            console.log('Engineer update - selected value:', newValue);
             
             if (!newValue) {
                 alert('Please select an engineer.');
@@ -1156,33 +1147,20 @@
             apiField = 'Date';
             clientField = 'Date';
             
-            console.log('Date update - selected value:', newValue);
-            
             if (!newValue) {
                 alert('Please select a date.');
                 return;
             }
         } else {
-            console.error('Unknown update type:', type);
             return;
         }
-
-        console.log('Proceeding with update:', { jobRef, apiField, newValue });
         
         closeModal(); 
         
         await updateJobField(jobRef, apiField, newValue, clientField);
-        
-        console.log('saveChanges completed');
     }
     
     async function updateJobField(jobRef, apiField, newValue, clientField) {
-        console.log('=== updateJobField CALLED ===');
-        console.log('jobRef:', jobRef);
-        console.log('apiField:', apiField);
-        console.log('newValue:', newValue);
-        console.log('clientField:', clientField);
-        
         try {
             const payload = {
                 action: "updateJob",
@@ -1191,10 +1169,6 @@
                     [apiField]: newValue
                 }
             };
-            
-            console.log('=== SENDING UPDATE REQUEST ===');
-            console.log('API URL:', API_URL);
-            console.log('Payload:', JSON.stringify(payload, null, 2));
 
             const response = await fetch(API_URL, {
                 method: 'POST',
@@ -1204,24 +1178,15 @@
                 body: JSON.stringify(payload)
             });
             
-            console.log('=== RESPONSE RECEIVED ===');
-            console.log('Response status:', response.status);
-            console.log('Response ok:', response.ok);
-            
             const responseText = await response.text();
-            console.log('Response text:', responseText);
-            
             let result;
             try {
                 result = JSON.parse(responseText);
-                console.log('Parsed response:', result);
             } catch (parseError) {
-                console.error('Failed to parse response as JSON:', parseError);
                 throw new Error('Invalid response from server: ' + responseText.substring(0, 100));
             }
             
             if (result.success) {
-                console.log('=== UPDATE SUCCESSFUL ===');
                 const job = allJobs.find(j => j.Ref == jobRef);
                 if (job) {
                     if (clientField === 'Date') {
@@ -1239,32 +1204,22 @@
                         } else {
                             document.getElementById('dateFilter').value = newValue;
                             handleDateChange({ target: { value: newValue } });
-                            console.log('Date changed, re-filtering jobs.');
                             return;
                         }
                         
                     } else {
                         job[clientField] = newValue;
-                        console.log(`Updated local job object: ${clientField} = ${newValue}`);
                     }
                 }
                 
                 populateEngineersListAndFilterJobs();
-                console.log(`✓ Job ${jobRef} updated successfully.`);
                 alert(`Job #${jobRef} ${apiField} updated successfully to: ${newValue}`);
             } else {
-                console.error('=== UPDATE FAILED ===');
-                console.error('Error message from server:', result.message);
                 throw new Error(result.message || 'Unknown error occurred');
             }
         } catch (error) {
-            console.error('=== UPDATE JOB ERROR ===');
-            console.error('Error type:', error.name);
-            console.error('Error message:', error.message);
-            console.error('Error stack:', error.stack);
-            alert(`Failed to update job: ${error.message}\n\nCheck browser console for details.`);
-            
-            console.log('Reloading jobs to sync with server...');
+            console.error('Update job error:', error);
+            alert(`Failed to update job: ${error.message}`);
             await loadJobs(true);
         }
     }
@@ -1294,8 +1249,6 @@
     }
 
     function openAddAppointmentModal() {
-        console.log('=== Opening Add Appointment Modal ===');
-        
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('newDate').value = today;
         
@@ -1308,14 +1261,11 @@
     }
 
     function closeAddAppointmentModal() {
-        console.log('=== Closing Add Appointment Modal ===');
         addAppointmentModal.style.display = 'none';
         document.getElementById('addAppointmentForm').reset();
     }
 
     async function submitNewAppointment() {
-        console.log('=== Submit New Appointment Called ===');
-        
         const contactName = document.getElementById('newContactName').value.trim();
         const contactNumber = document.getElementById('newContactNumber').value.trim();
         const contactEmail = document.getElementById('newContactEmail').value.trim();
@@ -1326,36 +1276,10 @@
         const time = document.getElementById('newTime').value;
         const engineer = document.getElementById('newEngineer').value;
         
-        if (!contactName) {
-            alert('Please enter a contact name.');
+        if (!contactName || !contactNumber || !address || !postcode || !date || !time || !engineer) {
+            alert('Please fill in all required fields.');
             return;
         }
-        if (!contactNumber) {
-            alert('Please enter a contact number.');
-            return;
-        }
-        if (!address) {
-            alert('Please enter an address.');
-            return;
-        }
-        if (!postcode) {
-            alert('Please enter a postcode.');
-            return;
-        }
-        if (!date) {
-            alert('Please select a date.');
-            return;
-        }
-        if (!time) {
-            alert('Please select a time (AM or PM).');
-            return;
-        }
-        if (!engineer) {
-            alert('Please select an engineer.');
-            return;
-        }
-        
-        console.log('Form validation passed. Submitting...');
         
         const appointmentData = {
             ContactName: contactName,
@@ -1369,15 +1293,104 @@
             Engineer: engineer
         };
         
-        console.log('Appointment data:', appointmentData);
-        
         try {
             const payload = {
                 action: "addJob",
                 data: appointmentData
             };
+
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'text/plain;charset=utf-8'
+                },
+                body: JSON.stringify(payload)
+            });
             
-            console.log('=== SENDING ADD JOB REQUEST ===');
+            const responseText = await response.text();
+            let result;
+            try {
+                result = JSON.parse(responseText);
+            } catch (parseError) {
+                throw new Error('Invalid response from server');
+            }
+            
+            if (result.success) {
+                alert(`Appointment added successfully!\nJob Reference: ${result.ref}`);
+                closeAddAppointmentModal();
+                await loadJobs(true);
+                
+                const [year, month, day] = date.split('-');
+                if (!selectedDate || 
+                    (selectedDate.day === Number(day) && 
+                     selectedDate.month === Number(month) && 
+                     selectedDate.year === Number(year))) {
+                    populateEngineersListAndFilterJobs();
+                }
+            } else {
+                throw new Error(result.message || 'Unknown error occurred');
+            }
+        } catch (error) {
+            console.error('Add appointment error:', error);
+            alert(`Failed to add appointment: ${error.message}`);
+        }
+    }
+
+    function openAddEngineerModal() {
+        console.log('Opening Add Engineer Modal');
+        document.getElementById('addEngineerForm').reset();
+        addEngineerModal.style.display = 'block';
+    }
+
+    function closeAddEngineerModal() {
+        console.log('Closing Add Engineer Modal');
+        addEngineerModal.style.display = 'none';
+        document.getElementById('addEngineerForm').reset();
+    }
+
+    async function submitNewEngineer() {
+        console.log('=== Submit New Engineer Called ===');
+        
+        const name = document.getElementById('engineerName').value.trim();
+        const password = document.getElementById('engineerPassword').value.trim();
+        const phone = document.getElementById('engineerPhone').value.trim();
+        const location = document.getElementById('engineerLocation').value;
+        
+        if (!name) {
+            alert('Please enter engineer name.');
+            return;
+        }
+        if (!password) {
+            alert('Please enter password.');
+            return;
+        }
+        if (!phone) {
+            alert('Please enter phone number.');
+            return;
+        }
+        if (!location) {
+            alert('Please select location.');
+            return;
+        }
+        
+        console.log('Form validation passed. Submitting engineer...');
+        
+        const engineerData = {
+            Name: name,
+            Password: password,
+            PhoneNumber: phone,
+            Location: location
+        };
+        
+        console.log('Engineer data:', engineerData);
+        
+        try {
+            const payload = {
+                action: "addEngineer",
+                data: engineerData
+            };
+            
+            console.log('=== SENDING ADD ENGINEER REQUEST ===');
             console.log('Payload:', JSON.stringify(payload, null, 2));
 
             const response = await fetch(API_URL, {
@@ -1403,29 +1416,21 @@
             }
             
             if (result.success) {
-                console.log('=== APPOINTMENT ADDED SUCCESSFULLY ===');
-                console.log('New job Ref:', result.ref);
+                console.log('=== ENGINEER ADDED SUCCESSFULLY ===');
+                console.log('Added at row:', result.row);
                 
-                alert(`Appointment added successfully!\nJob Reference: ${result.ref}`);
+                alert(`Engineer ${name} added successfully!`);
                 
-                closeAddAppointmentModal();
+                closeAddEngineerModal();
                 
                 await loadJobs(true);
-                
-                const [year, month, day] = date.split('-');
-                if (!selectedDate || 
-                    (selectedDate.day === Number(day) && 
-                     selectedDate.month === Number(month) && 
-                     selectedDate.year === Number(year))) {
-                    populateEngineersListAndFilterJobs();
-                }
             } else {
                 throw new Error(result.message || 'Unknown error occurred');
             }
         } catch (error) {
-            console.error('=== ADD APPOINTMENT ERROR ===');
+            console.error('=== ADD ENGINEER ERROR ===');
             console.error('Error:', error);
-            alert(`Failed to add appointment: ${error.message}\n\nCheck browser console for details.`);
+            alert(`Failed to add engineer: ${error.message}\n\nCheck browser console for details.`);
         }
     }
 
@@ -1433,14 +1438,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
