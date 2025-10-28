@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Job Scheduling Dashboard</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
     <style>
         * {
             margin: 0;
@@ -73,7 +77,7 @@
             min-width: 150px;
         }
 
-        .add-appointment-btn, .add-engineer-btn, #assignJobsBtn {
+        .add-appointment-btn, .add-engineer-btn, #assignJobsBtn, #mapViewBtn {
             color: white;
             padding: 12px 24px;
             border: none;
@@ -99,17 +103,22 @@
             box-shadow: 0 4px 10px rgba(253, 121, 168, 0.3);
         }
 
-        .add-appointment-btn:hover, .add-engineer-btn:hover, #assignJobsBtn:hover {
+        #mapViewBtn {
+            background: linear-gradient(135deg, #0984e3 0%, #00b894 100%);
+            box-shadow: 0 4px 10px rgba(9, 132, 227, 0.3);
+        }
+
+        .add-appointment-btn:hover, .add-engineer-btn:hover, #assignJobsBtn:hover, #mapViewBtn:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 15px rgba(0, 184, 148, 0.4);
         }
 
-        .add-engineer-btn:hover {
-            box-shadow: 0 6px 15px rgba(108, 92, 231, 0.4);
-        }
-
         #assignJobsBtn:hover {
             box-shadow: 0 6px 15px rgba(253, 121, 168, 0.4);
+        }
+
+        #mapViewBtn:hover {
+            box-shadow: 0 6px 15px rgba(9, 132, 227, 0.4);
         }
 
         #assignJobsBtn:disabled {
@@ -534,6 +543,41 @@
             width: 100%;
         }
 
+        /* ==== MAP MODAL ==== */
+        #mapModal .modal-content {
+            max-width: 95%;
+            width: 1100px;
+            padding: 15px;
+        }
+
+        #mapFilterBar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        #mapFilterBar label {
+            font-weight: 600;
+            color: #2d3436;
+        }
+
+        #mapFilterBar select,
+        #mapFilterBar input {
+            min-width: 200px;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+
+        #mapContainer {
+            height: 600px;
+            border-radius: 12px;
+            margin-top: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
         @media (max-width: 768px) {
             .header-content {
                 flex-direction: column;
@@ -557,6 +601,20 @@
             .jobs-area {
                 flex-direction: column;
             }
+
+            #mapModal .modal-content {
+                width: 95%;
+                margin: 5% auto;
+            }
+
+            #mapContainer {
+                height: 400px;
+            }
+
+            #mapFilterBar {
+                flex-direction: column;
+                align-items: stretch;
+            }
         }
     </style>
 </head>
@@ -569,10 +627,10 @@
         </div>
         <div class="filters">
             <div class="filter-group">
-                <button class="add-appointment-btn" onclick="openAddAppointmentModal()">➕ Add Appointment</button>
+                <button class="add-appointment-btn" onclick="openAddAppointmentModal()">Add Appointment</button>
             </div>
             <div class="filter-group">
-                <button class="add-engineer-btn" onclick="openAddEngineerModal()">👷 Add New Engineer</button>
+                <button class="add-engineer-btn" onclick="openAddEngineerModal()">Add New Engineer</button>
             </div>
             <div class="filter-group">
                 <label for="dateFilter">Select Date:</label>
@@ -596,6 +654,10 @@
             <div class="filter-group">
                 <button id="assignJobsBtn">Assign Jobs (0)</button>
             </div>
+            <!-- MAP VIEW BUTTON -->
+            <div class="filter-group">
+                <button id="mapViewBtn">Map View</button>
+            </div>
         </div>
     </div>
 
@@ -610,17 +672,19 @@
         </div>
     </div>
 
+    <!-- Status Menu -->
     <div id="statusMenu" class="status-menu" style="display: none;">
-        <div class="status-option" data-action="status" data-status="On Route">🚗 Change Status: On Route</div>
-        <div class="status-option" data-action="status" data-status="In Progress">🔧 Change Status: In Progress</div>
-        <div class="status-option" data-action="status" data-status="Completed">✅ Change Status: Completed</div>
-        <div class="status-option" data-action="status" data-status="Cancelled">❌ Change Status: Cancelled</div>
-        <div class="status-option" data-action="status" data-status="Aborted">⚠️ Change Status: Aborted</div>
+        <div class="status-option" data-action="status" data-status="On Route">Change Status: On Route</div>
+        <div class="status-option" data-action="status" data-status="In Progress">Change Status: In Progress</div>
+        <div class="status-option" data-action="status" data-status="Completed">Change Status: Completed</div>
+        <div class="status-option" data-action="status" data-status="Cancelled">Change Status: Cancelled</div>
+        <div class="status-option" data-action="status" data-status="Aborted">Change Status: Aborted</div>
         <div class="menu-divider"></div>
-        <div class="status-option" data-action="engineer">👷 Change Engineer</div>
-        <div class="status-option" data-action="date">📅 Change Date</div>
+        <div class="status-option" data-action="engineer">Change Engineer</div>
+        <div class="status-option" data-action="date">Change Date</div>
     </div>
 
+    <!-- Update Modal -->
     <div id="updateModal" class="modal">
         <div class="modal-content">
             <span class="close-button" onclick="closeModal()">&times;</span>
@@ -637,6 +701,7 @@
         </div>
     </div>
 
+    <!-- Add Appointment Modal -->
     <div id="addAppointmentModal" class="modal">
         <div class="modal-content" style="max-width: 600px;">
             <span class="close-button" onclick="closeAddAppointmentModal()">&times;</span>
@@ -708,6 +773,7 @@
         </div>
     </div>
 
+    <!-- Add Engineer Modal -->
     <div id="addEngineerModal" class="modal">
         <div class="modal-content" style="max-width: 500px;">
             <span class="close-button" onclick="closeAddEngineerModal()">&times;</span>
@@ -760,6 +826,7 @@
         </div>
     </div>
 
+    <!-- Assign Jobs Modal -->
     <div id="assignJobsModal" class="modal">
         <div class="modal-content" style="max-width: 800px; width: 90%;">
             <span class="close-button" onclick="closeAssignJobsModal()">&times;</span>
@@ -770,6 +837,36 @@
             </div>
         </div>
     </div>
+
+    <!-- MAP MODAL -->
+    <div id="mapModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeMapModal()">&times;</span>
+            <h2>Engineer Route Map</h2>
+
+            <div id="mapFilterBar">
+                <div class="form-group">
+                    <label for="mapEngineerSelect">Engineer:</label>
+                    <select id="mapEngineerSelect">
+                        <option value="">-- All Engineers --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="mapDateSelect">Date:</label>
+                    <input type="date" id="mapDateSelect">
+                </div>
+                <button id="refreshMapBtn" style="padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer;">Refresh Map</button>
+            </div>
+
+            <div id="mapContainer"></div>
+            <div class="modal-buttons">
+                <button type="button" class="cancel-btn" onclick="closeMapModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
 const API_URL = 'https://script.google.com/macros/s/AKfycbwrRU5wD-emjMH95k8R1m9eiAf48sI0_GyPs6iBRAspeCAxcIjn9McfaUi-JppMIRq1/exec';
@@ -785,6 +882,11 @@ let countdownInterval = null;
 let secondsUntilRefresh = 30;
 const REFRESH_INTERVAL_MS = 30000;
 
+// Map globals
+let map = null;
+let mapMarkers = [];
+let mapPolyline = null;
+
 const updateModal = document.getElementById('updateModal');
 const modalTitle = document.getElementById('modalTitle');
 const engineerField = document.getElementById('engineerField');
@@ -799,6 +901,7 @@ async function init() {
     const today = new Date();
     const todayString = today.toISOString().split('T')[0];
     document.getElementById('dateFilter').value = todayString;
+    document.getElementById('mapDateSelect').value = todayString;
     
     selectedDate = {
         day: today.getDate(),
@@ -809,6 +912,9 @@ async function init() {
     await loadJobs();
     setupEventListeners();
     startAutoRefresh();
+
+    // Map button
+    document.getElementById('mapViewBtn').addEventListener('click', openMapModal);
 }
 
 function setupEventListeners() {
@@ -816,6 +922,7 @@ function setupEventListeners() {
     document.getElementById('engineerFilter').addEventListener('change', handleEngineerChange);
     document.getElementById('autoRefreshToggle').addEventListener('change', handleAutoRefreshToggle);
     document.getElementById('assignJobsBtn').addEventListener('click', openAssignJobsModal);
+    document.getElementById('refreshMapBtn').addEventListener('click', updateMapView);
     
     document.addEventListener('click', (e) => {
         const statusMenu = document.getElementById('statusMenu');
@@ -829,6 +936,7 @@ function setupEventListeners() {
         if (event.target == addAppointmentModal) closeAddAppointmentModal();
         if (event.target == addEngineerModal) closeAddEngineerModal();
         if (event.target == assignJobsModal) closeAssignJobsModal();
+        if (event.target == document.getElementById('mapModal')) closeMapModal();
     }
 }
 
@@ -902,7 +1010,8 @@ async function loadJobs(isRefresh = false) {
         
         populateEngineersFilter();
         populateEngineersListAndFilterJobs();
-        updateAssignJobsButton(); // Update count even on load
+        updateAssignJobsButton();
+        populateMapEngineerSelect(); // <-- Added
     } catch (error) {
         console.error('Error loading jobs:', error);
         document.getElementById('engineerJobsContainer').innerHTML = '<div class="no-jobs">Error loading jobs. Please check your API URL.</div>';
@@ -938,6 +1047,17 @@ function populateNewEngineerSelect() {
     newEngineerSelect.value = currentValue;
 }
 
+function populateMapEngineerSelect() {
+    const sel = document.getElementById('mapEngineerSelect');
+    sel.innerHTML = '<option value="">-- All Engineers --</option>';
+    allEngineers.forEach(e => {
+        const opt = document.createElement('option');
+        opt.value = e;
+        opt.textContent = e;
+        sel.appendChild(opt);
+    });
+}
+
 function populateEngineersListAndFilterJobs() {
     const filteredJobs = filterJobs();
     const jobsByEngineer = filteredJobs.reduce((acc, job) => {
@@ -964,7 +1084,7 @@ function populateEngineersListAndFilterJobs() {
     });
 
     displayJobs(jobsByEngineer);
-    updateAssignJobsButton(); // Update count when filtering
+    updateAssignJobsButton();
 }
 
 function filterJobs() {
@@ -1222,7 +1342,6 @@ function populateUnassignedJobs() {
         job['Appointment Contact Name'] && !job.Engineer
     );
 
-    // Count jobs per engineer per date
     const jobCountByEngineerAndDate = {};
     allJobs.forEach(job => {
         if (job.Engineer && job.dateComponents.day) {
@@ -1338,6 +1457,87 @@ async function submitNewEngineer() {
     } catch (err) {
         alert(`Failed: ${err.message}`);
     }
+}
+
+/* ================== MAP VIEW ================== */
+
+function openMapModal() {
+    document.getElementById('mapModal').style.display = 'block';
+    document.getElementById('mapDateSelect').value = document.getElementById('dateFilter').value;
+    document.getElementById('mapEngineerSelect').value = selectedEngineer;
+
+    if (!map) {
+        map = L.map('mapContainer').setView([54.5, -4], 6);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+    }
+
+    updateMapView();
+}
+
+async function updateMapView() {
+    const selectedEng = document.getElementById('mapEngineerSelect').value;
+    const dateVal = document.getElementById('mapDateSelect').value;
+    if (!dateVal) return alert('Please select a date.');
+
+    const [y, m, d] = dateVal.split('-');
+    const targetDate = { day: +d, month: +m, year: +y };
+
+    const jobs = allJobs.filter(j => {
+        const dateOk = j.dateComponents.day === targetDate.day &&
+                      j.dateComponents.month === targetDate.month &&
+                      j.dateComponents.year === targetDate.year;
+        const engOk = !selectedEng || j.Engineer === selectedEng;
+        return dateOk && engOk && j['Job Details : Postcode'];
+    });
+
+    // Clear old markers
+    mapMarkers.forEach(m => map.removeLayer(m));
+    mapMarkers = [];
+    if (mapPolyline) { map.removeLayer(mapPolyline); mapPolyline = null; }
+
+    if (jobs.length === 0) {
+        alert('No jobs with postcode found.');
+        return;
+    }
+
+    const coords = [];
+    for (const job of jobs) {
+        const pc = job['Job Details : Postcode'].trim();
+        try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(pc)}&format=json&limit=1`);
+            const data = await res.json();
+            if (data && data[0]) {
+                const lat = parseFloat(data[0].lat);
+                const lng = parseFloat(data[0].lon);
+                const marker = L.marker([lat, lng]).addTo(map);
+                marker.bindPopup(`
+                    <b>Job #${job.Ref}</b><br>
+                    ${job['Appointment Contact Name']}<br>
+                    ${job.Address}<br>
+                    <b>Postcode:</b> ${pc}<br>
+                    <b>Time:</b> ${job.Time || 'N/A'}<br>
+                    <b>Engineer:</b> ${job.Engineer || 'Unassigned'}
+                `);
+                mapMarkers.push(marker);
+                coords.push([lat, lng]);
+            }
+        } catch (e) {
+            console.error('Geocode failed:', pc, e);
+        }
+    }
+
+    if (coords.length > 0) {
+        map.fitBounds(L.latLngBounds(coords).pad(0.2));
+        if (coords.length > 1) {
+            mapPolyline = L.polyline(coords, { color: '#667eea', weight: 4, opacity: 0.7 }).addTo(map);
+        }
+    }
+}
+
+function closeMapModal() {
+    document.getElementById('mapModal').style.display = 'none';
 }
 
 window.addEventListener('load', init);
