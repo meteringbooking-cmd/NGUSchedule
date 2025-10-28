@@ -73,7 +73,7 @@
             min-width: 150px;
         }
 
-        .add-appointment-btn, .add-engineer-btn {
+        .add-appointment-btn, .add-engineer-btn, #assignJobsBtn {
             color: white;
             padding: 12px 24px;
             border: none;
@@ -94,13 +94,28 @@
             box-shadow: 0 4px 10px rgba(108, 92, 231, 0.3);
         }
 
-        .add-appointment-btn:hover, .add-engineer-btn:hover {
+        #assignJobsBtn {
+            background: linear-gradient(135deg, #fd79a8 0%, #e84393 100%);
+            box-shadow: 0 4px 10px rgba(253, 121, 168, 0.3);
+        }
+
+        .add-appointment-btn:hover, .add-engineer-btn:hover, #assignJobsBtn:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 15px rgba(0, 184, 148, 0.4);
         }
 
         .add-engineer-btn:hover {
             box-shadow: 0 6px 15px rgba(108, 92, 231, 0.4);
+        }
+
+        #assignJobsBtn:hover {
+            box-shadow: 0 6px 15px rgba(253, 121, 168, 0.4);
+        }
+
+        #assignJobsBtn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
         }
 
         .refresh-control {
@@ -267,6 +282,11 @@
             background: linear-gradient(135deg, #ffe6f1 0%, #ffd3e8 100%);
         }
 
+        .job-card.unassigned {
+            border-color: #ff7675;
+            background: linear-gradient(135deg, #ffecec 0%, #ffdada 100%);
+        }
+
         .job-header {
             display: flex;
             justify-content: space-between;
@@ -293,6 +313,7 @@
         .job-status.completed { background: #00b894; color: white; }
         .job-status.cancelled { background: #636e72; color: white; }
         .job-status.aborted { background: #e84393; color: white; }
+        .job-status.unassigned { background: #ff7675; color: white; }
 
         .job-details {
             margin-bottom: 10px;
@@ -498,6 +519,21 @@
             background: #4a5256;
         }
 
+        #unassignedJobsList {
+            max-height: 60vh;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        #unassignedJobsList .job-card {
+            margin-bottom: 20px;
+        }
+
+        #unassignedJobsList select {
+            margin-top: 10px;
+            width: 100%;
+        }
+
         @media (max-width: 768px) {
             .header-content {
                 flex-direction: column;
@@ -556,6 +592,9 @@
                     </div>
                     <div class="refresh-status" id="refreshStatus">Next refresh in 30s</div>
                 </div>
+            </div>
+            <div class="filter-group">
+                <button id="assignJobsBtn">Assign Jobs (0)</button>
             </div>
         </div>
     </div>
@@ -721,6 +760,17 @@
         </div>
     </div>
 
+    <div id="assignJobsModal" class="modal">
+        <div class="modal-content" style="max-width: 800px; width: 90%;">
+            <span class="close-button" onclick="closeAssignJobsModal()">&times;</span>
+            <h2>Assign Jobs</h2>
+            <div id="unassignedJobsList"></div>
+            <div class="modal-buttons">
+                <button type="button" class="cancel-btn" onclick="closeAssignJobsModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
     <script>
     const API_URL = 'https://script.google.com/macros/s/AKfycbwrRU5wD-emjMH95k8R1m9eiAf48sI0_GyPs6iBRAspeCAxcIjn9McfaUi-JppMIRq1/exec';
     
@@ -743,6 +793,7 @@
     const modalDateInput = document.getElementById('modalDateInput');
     const addAppointmentModal = document.getElementById('addAppointmentModal');
     const addEngineerModal = document.getElementById('addEngineerModal');
+    const assignJobsModal = document.getElementById('assignJobsModal');
 
     async function init() {
         const today = new Date();
@@ -764,6 +815,7 @@
         document.getElementById('dateFilter').addEventListener('change', handleDateChange);
         document.getElementById('engineerFilter').addEventListener('change', handleEngineerChange);
         document.getElementById('autoRefreshToggle').addEventListener('change', handleAutoRefreshToggle);
+        document.getElementById('assignJobsBtn').addEventListener('click', openAssignJobsModal);
         
         document.addEventListener('click', (e) => {
             const statusMenu = document.getElementById('statusMenu');
@@ -781,6 +833,9 @@
             }
             if (event.target == addEngineerModal) {
                 closeAddEngineerModal();
+            }
+            if (event.target == assignJobsModal) {
+                closeAssignJobsModal();
             }
         }
     }
@@ -955,6 +1010,16 @@
         });
 
         displayJobs(jobsByEngineer);
+
+        // Update assign jobs button
+        const dateFilteredJobs = allJobs.filter(job => {
+            const jobDate = job.dateComponents;
+            return selectedDate && jobDate.day === selectedDate.day && jobDate.month === selectedDate.month && jobDate.year === selectedDate.year;
+        });
+        const unassignedCount = dateFilteredJobs.filter(job => job['Appointment Contact Name'] && !job.Engineer).length;
+        const assignBtn = document.getElementById('assignJobsBtn');
+        assignBtn.textContent = `Assign Jobs (${unassignedCount})`;
+        assignBtn.disabled = unassignedCount === 0;
     }
 
     function filterJobs() {
@@ -1214,6 +1279,10 @@
                 
                 populateEngineersListAndFilterJobs();
                 alert(`Job #${jobRef} ${apiField} updated successfully to: ${newValue}`);
+
+                if (assignJobsModal.style.display === 'block') {
+                    populateUnassignedJobs();
+                }
             } else {
                 throw new Error(result.message || 'Unknown error occurred');
             }
@@ -1434,8 +1503,72 @@
         }
     }
 
+    function openAssignJobsModal() {
+        if (!selectedDate) {
+            alert('Please select a date first.');
+            return;
+        }
+        assignJobsModal.style.display = 'block';
+        populateUnassignedJobs();
+    }
+
+    function closeAssignJobsModal() {
+        assignJobsModal.style.display = 'none';
+    }
+
+    function populateUnassignedJobs() {
+        const dateFilteredJobs = allJobs.filter(job => {
+            const jobDate = job.dateComponents;
+            return selectedDate && jobDate.day === selectedDate.day && jobDate.month === selectedDate.month && jobDate.year === selectedDate.year;
+        });
+        const unassignedJobs = dateFilteredJobs.filter(job => job['Appointment Contact Name'] && !job.Engineer);
+
+        const jobCounts = {};
+        allEngineers.forEach(eng => jobCounts[eng] = 0);
+        dateFilteredJobs.forEach(job => {
+            if (job.Engineer) {
+                jobCounts[job.Engineer]++;
+            }
+        });
+
+        const list = document.getElementById('unassignedJobsList');
+        if (unassignedJobs.length === 0) {
+            list.innerHTML = '<div class="no-jobs">No jobs to assign for this date.</div>';
+        } else {
+            list.innerHTML = unassignedJobs.map(job => {
+                const options = allEngineers.map(eng => 
+                    `<option value="${eng}">${eng} (${jobCounts[eng]} jobs)</option>`
+                ).join('');
+                return `
+                    <div class="job-card unassigned" data-ref="${job.Ref}">
+                        <div class="job-header">
+                            <div class="job-ref">Job #${job.Ref}</div>
+                            <div class="job-status unassigned">Unassigned</div>
+                        </div>
+                        <div class="job-details">
+                            <div class="job-detail"><strong>Contact Name:</strong> ${job['Appointment Contact Name'] || 'N/A'}</div>
+                            <div class="job-detail"><strong>Site Name:</strong> ${job.Site || 'N/A'}</div>
+                            <div class="job-detail"><strong>Address:</strong> ${job.Address || 'N/A'}</div>
+                            <div class="job-detail"><strong>Postcode:</strong> ${job['Job Details : Postcode'] || 'N/A'}</div>
+                            <div class="job-detail"><strong>Time Slot:</strong> ${job.Time || 'N/A'}</div>
+                            <div class="job-detail"><strong>Date:</strong> ${job.displayDate}</div>
+                        </div>
+                        <select onchange="assignEngineerToJob('${job.Ref}', this.value)">
+                            <option value="">Select Engineer</option>
+                            ${options}
+                        </select>
+                    </div>
+                `;
+            }).join('');
+        }
+    }
+
+    function assignEngineerToJob(ref, engineer) {
+        if (!engineer) return;
+        updateJobField(ref, 'Engineer', engineer, 'Engineer');
+    }
+
     window.addEventListener('load', init);
     </script>
 </body>
 </html>
-
