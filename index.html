@@ -616,6 +616,25 @@
                 align-items: stretch;
             }
         }
+
+        /* NEW: Amend Job Button Style */
+        .add-amend-job-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            box-shadow: 0 4px 10px rgba(245, 87, 108, 0.3);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .add-amend-job-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(245, 87, 108, 0.4);
+        }
     </style>
 </head>
 <body>
@@ -627,10 +646,10 @@
         </div>
         <div class="filters">
             <div class="filter-group">
-                <button class="add-appointment-btn" onclick="openAddAppointmentModal()">➕ Add Appointment</button>
+                <button class="add-appointment-btn" onclick="openAddAppointmentModal()">Add Appointment</button>
             </div>
             <div class="filter-group">
-                <button class="add-engineer-btn" onclick="openAddEngineerModal()">👷 Add New Engineer</button>
+                <button class="add-engineer-btn" onclick="openAddEngineerModal()">Add New Engineer</button>
             </div>
             <div class="filter-group">
                 <label for="dateFilter">Select Date:</label>
@@ -652,11 +671,15 @@
                 </div>
             </div>
             <div class="filter-group">
-                <button id="assignJobsBtn">🖊️Assign Jobs (0)</button>
+                <button id="assignJobsBtn">Assign Jobs (0)</button>
             </div>
             <!-- MAP VIEW BUTTON -->
             <div class="filter-group">
-                <button id="mapViewBtn">🌎Map View</button>
+                <button id="mapViewBtn">Map View</button>
+            </div>
+            <!-- AMEND JOB BUTTON -->
+            <div class="filter-group">
+                <button class="add-amend-job-btn" onclick="openAmendJobModal()">Amend Job</button>
             </div>
         </div>
     </div>
@@ -674,14 +697,14 @@
 
     <!-- Status Menu -->
     <div id="statusMenu" class="status-menu" style="display: none;">
-        <div class="status-option" data-action="status" data-status="On Route">🚗 Change Status: On Route</div>
-        <div class="status-option" data-action="status" data-status="In Progress">🔧 Change Status: In Progress</div>
-        <div class="status-option" data-action="status" data-status="Completed">✅ Change Status: Completed</div>
-        <div class="status-option" data-action="status" data-status="Cancelled">❌ Change Status: Cancelled</div>
-        <div class="status-option" data-action="status" data-status="Aborted">⚠️ Change Status: Aborted</div>
+        <div class="status-option" data-action="status" data-status="On Route">Change Status: On Route</div>
+        <div class="status-option" data-action="status" data-status="In Progress">Change Status: In Progress</div>
+        <div class="status-option" data-action="status" data-status="Completed">Change Status: Completed</div>
+        <div class="status-option" data-action="status" data-status="Cancelled">Change Status: Cancelled</div>
+        <div class="status-option" data-action="status" data-status="Aborted">Change Status: Aborted</div>
         <div class="menu-divider"></div>
-        <div class="status-option" data-action="engineer">👷 Change Engineer</div>
-        <div class="status-option" data-action="date">📅 Change Date</div>
+        <div class="status-option" data-action="engineer">Change Engineer</div>
+        <div class="status-option" data-action="date">Change Date</div>
     </div>
 
     <!-- Update Modal -->
@@ -865,6 +888,71 @@
         </div>
     </div>
 
+    <!-- AMEND JOB MODAL -->
+    <div id="amendJobModal" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <span class="close-button" onclick="closeAmendJobModal()">&times;</span>
+            <h2>Amend Job #<span id="amendJobRef"></span></h2>
+
+            <form id="amendJobForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="amendContactName">Contact Name</label>
+                        <input type="text" id="amendContactName">
+                    </div>
+                    <div class="form-group">
+                        <label for="amendContactNumber">Contact Number</label>
+                        <input type="tel" id="amendContactNumber">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="amendContactEmail">Contact Email</label>
+                        <input type="email" id="amendContactEmail">
+                    </div>
+                    <div class="form-group">
+                        <label for="amendSite">Site Name</label>
+                        <input type="text" id="amendSite">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group full-width">
+                        <label for="amendAddress">Address</label>
+                        <input type="text" id="amendAddress">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="amendPostcode">Postcode</label>
+                        <input type="text" id="amendPostcode">
+                    </div>
+                    <div class="form-group">
+                        <label for="amendDate">Date</label>
+                        <input type="date" id="amendDate">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="amendTime">Time Slot</label>
+                        <select id="amendTime">
+                            <option value="AM">AM</option>
+                            <option value="PM">PM</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="modal-buttons">
+                    <button type="button" class="cancel-btn" onclick="closeAmendJobModal()">Cancel</button>
+                    <button type="button" onclick="saveAmendedJob()">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -886,6 +974,10 @@ const REFRESH_INTERVAL_MS = 30000;
 let map = null;
 let mapMarkers = [];
 let mapPolyline = null;
+
+// NEW: Amend Job globals
+const amendJobModal = document.getElementById('amendJobModal');
+let currentAmendJobRef = null;
 
 const updateModal = document.getElementById('updateModal');
 const modalTitle = document.getElementById('modalTitle');
@@ -937,6 +1029,7 @@ function setupEventListeners() {
         if (event.target == addEngineerModal) closeAddEngineerModal();
         if (event.target == assignJobsModal) closeAssignJobsModal();
         if (event.target == document.getElementById('mapModal')) closeMapModal();
+        if (event.target == amendJobModal) closeAmendJobModal(); // NEW: Close Amend modal
     }
 }
 
@@ -1543,10 +1636,86 @@ function closeMapModal() {
     document.getElementById('mapModal').style.display = 'none';
 }
 
+/* ================== AMEND JOB ================== */
+
+function openAmendJobModal() {
+    const ref = prompt('Enter Job Ref Number (Column A):');
+    if (!ref || ref.trim() === '') return;
+
+    const job = allJobs.find(j => j.Ref == ref.trim());
+    if (!job) {
+        alert('Job Ref not found.');
+        return;
+    }
+
+    currentAmendJobRef = ref.trim();
+    document.getElementById('amendJobRef').textContent = ref;
+
+    // Fill fields (columns D-I)
+    document.getElementById('amendContactName').value   = job['Appointment Contact Name'] || '';
+    document.getElementById('amendContactNumber').value = job['Appointment Contact Number'] || '';
+    document.getElementById('amendContactEmail').value  = job['Appointment Contact Email'] || '';
+    document.getElementById('amendSite').value          = job.Site || '';
+    document.getElementById('amendAddress').value       = job.Address || '';
+    document.getElementById('amendPostcode').value      = job['Job Details : Postcode'] || '';
+
+    // Date
+    const {year, month, day} = job.dateComponents;
+    document.getElementById('amendDate').value = `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+
+    // Time slot
+    document.getElementById('amendTime').value = job.Time?.toUpperCase().includes('AM') ? 'AM' : 'PM';
+
+    amendJobModal.style.display = 'block';
+}
+
+function closeAmendJobModal() {
+    amendJobModal.style.display = 'none';
+    currentAmendJobRef = null;
+}
+
+async function saveAmendedJob() {
+    if (!currentAmendJobRef) return;
+
+    const updates = {
+        'Appointment Contact Name'   : document.getElementById('amendContactName').value.trim(),
+        'Appointment Contact Number' : document.getElementById('amendContactNumber').value.trim(),
+        'Appointment Contact Email'  : document.getElementById('amendContactEmail').value.trim(),
+        Site                         : document.getElementById('amendSite').value.trim(),
+        Address                      : document.getElementById('amendAddress').value.trim(),
+        'Job Details : Postcode'     : document.getElementById('amendPostcode').value.trim(),
+    };
+
+    const dateVal = document.getElementById('amendDate').value;
+    const [y, m, d] = dateVal.split('-');
+    updates.Day   = +d;
+    updates.Month = +m;
+    updates.Year  = +y;
+    updates.Time  = document.getElementById('amendTime').value;
+
+    try {
+        const payload = { action: 'updateJob', data: { Ref: currentAmendJobRef, ...updates } };
+        const resp = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload)
+        });
+        const result = JSON.parse(await resp.text());
+
+        if (result.success) {
+            alert(`Job #${currentAmendJobRef} updated!`);
+            closeAmendJobModal();
+            await loadJobs(true);          // refresh data
+        } else {
+            throw new Error(result.message || 'Update failed');
+        }
+    } catch (e) {
+        console.error(e);
+        alert(`Failed: ${e.message}`);
+    }
+}
+
 window.addEventListener('load', init);
 </script>
 </body>
 </html>
-
-
-
