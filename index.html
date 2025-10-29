@@ -957,7 +957,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
-const API_URL = 'https://script.google.com/macros/s/AKfycbz8Z8tTPLhfkNAwODtE6ovdLP01Gvhqd9zOZ-W1nXi7fTEoa4JYRtJ1kmm92no5di2T/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbyU86Nq8PE4jrG3t1nj2gyd-cUZlS4FdPx9p67zXVZ2_jbO6ZxJwuyXW2pmj2Aynaj9/exec';
 
 let allJobs = [];
 let allEngineers = [];
@@ -1254,6 +1254,7 @@ function createJobCard(job) {
                 <div class="job-detail"><strong>Time:</strong> ${job.Time || 'N/A'}</div>
                 <div class="job-detail"><strong>Date:</strong> ${job.displayDate}</div>
                 <div class="job-detail"><strong>Engineer:</strong> ${job.Engineer || 'Unassigned'}</div>
+                <div class="job-detail"><strong>Site:</strong> ${job.Site || 'N/A'}</div> <!-- FIXED -->
             </div>
         </div>
     `;
@@ -1465,7 +1466,7 @@ function populateUnassignedJobs() {
                 <div class="job-details">
                     <div class="job-detail"><strong>Date:</strong> ${job.displayDate}</div>
                     <div class="job-detail"><strong>Contact:</strong> ${job['Appointment Contact Name']}</div>
-                    <div class="job-detail"><strong>Site:</strong> ${job.Site || 'N/A'}</div>
+                    <div class="job-detail"><strong>Site:</strong> ${job.Site || 'N/A'}</div> <!-- FIXED -->
                     <div class="job-detail"><strong>Address:</strong> ${job.Address}</div>
                     <div class="job-detail"><strong>Postcode:</strong> ${job['Job Details : Postcode']}</div>
                     <div class="job-detail"><strong>Time Slot:</strong> ${job.Time}</div>
@@ -1719,6 +1720,3 @@ window.addEventListener('load', init);
 </script>
 </body>
 </html>
-
-
-
