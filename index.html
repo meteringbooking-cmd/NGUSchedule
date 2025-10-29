@@ -1639,7 +1639,7 @@ function closeMapModal() {
 /* ================== AMEND JOB ================== */
 
 function openAmendJobModal() {
-    const ref = prompt('Enter Job Ref Number (Column A):');
+    const ref = prompt('Enter Job Ref Number:');
     if (!ref || ref.trim() === '') return;
 
     const job = allJobs.find(j => j.Ref == ref.trim());
