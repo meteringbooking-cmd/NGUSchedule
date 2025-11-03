@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Job Scheduling Dashboard</title>
+    <title>Tesla Energy Job Scheduling Dashboard</title>
 
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -17,15 +18,15 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f7fa;
-            color: #333;
+            background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+            color: #f5f5f5;
         }
 
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #E82127 0%, #cc1d22 100%);
             color: white;
             padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(232, 33, 39, 0.4);
         }
 
         .header-content {
@@ -69,12 +70,18 @@
 
         select, input[type="date"] {
             padding: 10px 15px;
-            border: none;
+            border: 1px solid #3a3a3a;
             border-radius: 8px;
-            background: white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            background: #2a2a2a;
+            color: #f5f5f5;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
             font-size: 16px;
             min-width: 150px;
+        }
+
+        select:focus, input[type="date"]:focus {
+            outline: none;
+            border-color: #E82127;
         }
 
         .add-appointment-btn, .add-engineer-btn, #assignJobsBtn, #mapViewBtn {
@@ -86,39 +93,31 @@
             font-size: 1em;
             font-weight: 600;
             transition: all 0.3s;
-            box-shadow: 0 4px 10px rgba(0, 184, 148, 0.3);
         }
 
         .add-appointment-btn {
-            background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
+            background: linear-gradient(135deg, #E82127 0%, #cc1d22 100%);
+            box-shadow: 0 4px 10px rgba(232, 33, 39, 0.4);
         }
 
         .add-engineer-btn {
-            background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
-            box-shadow: 0 4px 10px rgba(108, 92, 231, 0.3);
+            background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
+            box-shadow: 0 4px 10px rgba(58, 58, 58, 0.4);
         }
 
         #assignJobsBtn {
-            background: linear-gradient(135deg, #fd79a8 0%, #e84393 100%);
-            box-shadow: 0 4px 10px rgba(253, 121, 168, 0.3);
+            background: linear-gradient(135deg, #E82127 0%, #b81920 100%);
+            box-shadow: 0 4px 10px rgba(232, 33, 39, 0.4);
         }
 
         #mapViewBtn {
-            background: linear-gradient(135deg, #0984e3 0%, #00b894 100%);
-            box-shadow: 0 4px 10px rgba(9, 132, 227, 0.3);
+            background: linear-gradient(135deg, #E82127 0%, #cc1d22 100%);
+            box-shadow: 0 4px 10px rgba(232, 33, 39, 0.4);
         }
 
         .add-appointment-btn:hover, .add-engineer-btn:hover, #assignJobsBtn:hover, #mapViewBtn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(0, 184, 148, 0.4);
-        }
-
-        #assignJobsBtn:hover {
-            box-shadow: 0 6px 15px rgba(253, 121, 168, 0.4);
-        }
-
-        #mapViewBtn:hover {
-            box-shadow: 0 6px 15px rgba(9, 132, 227, 0.4);
+            box-shadow: 0 6px 15px rgba(232, 33, 39, 0.5);
         }
 
         #assignJobsBtn:disabled {
@@ -138,10 +137,11 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            background: white;
+            background: #2a2a2a;
             padding: 10px 15px;
             border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border: 1px solid #3a3a3a;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
 
         .refresh-toggle input[type="checkbox"] {
@@ -153,7 +153,7 @@
         .refresh-toggle label {
             cursor: pointer;
             margin: 0;
-            color: #333;
+            color: #f5f5f5;
         }
 
         .refresh-status {
@@ -170,36 +170,38 @@
 
         .engineers-sidebar {
             width: 200px;
-            background: white;
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
             border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
             padding: 20px;
             height: fit-content;
         }
 
         .engineers-sidebar h3 {
             margin-bottom: 15px;
-            color: #667eea;
+            color: #E82127;
             font-size: 1.2em;
         }
 
         .engineer-item {
             padding: 10px;
             margin-bottom: 8px;
-            background: #f8f9ff;
+            background: #2a2a2a;
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.3s ease;
-            border-left: 4px solid #667eea;
+            border-left: 4px solid #E82127;
+            color: #d0d0d0;
         }
 
         .engineer-item:hover {
-            background: #e8ecff;
+            background: #3a3a3a;
             transform: translateX(5px);
         }
 
         .engineer-item.selected {
-            background: #667eea;
+            background: #E82127;
             color: white;
         }
         
@@ -213,15 +215,16 @@
         
         .engineer-column {
             min-width: 450px;
-            background: white;
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
             border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
             display: flex;
             flex-direction: column;
         }
 
         .engineer-column h3 {
-            background: linear-gradient(135deg, #74b9ff 0%, #a29bfe 100%);
+            background: linear-gradient(135deg, #E82127 0%, #cc1d22 100%);
             color: white;
             padding: 15px;
             border-radius: 12px 12px 0 0;
@@ -241,7 +244,7 @@
         }
 
         .time-section h4 {
-            color: #636e72;
+            color: #888;
             text-align: center;
             margin-bottom: 10px;
         }
@@ -251,49 +254,49 @@
         }
 
         .job-card {
-            background: white;
-            border: 2px solid #e0e6ed;
+            background: #2a2a2a;
+            border: 2px solid #3a3a3a;
             border-radius: 12px;
             padding: 15px;
             margin-bottom: 15px;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
 
         .job-card:hover {
             transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            box-shadow: 0 6px 20px rgba(232, 33, 39, 0.3);
         }
 
         .job-card.on-route {
-            border-color: #fdcb6e;
-            background: linear-gradient(135deg, #fff9e6 0%, #fef5d3 100%);
+            border-color: #ffd700;
+            background: linear-gradient(135deg, #2a2a1a 0%, #3a3a20 100%);
         }
 
         .job-card.in-progress {
-            border-color: #74b9ff;
-            background: linear-gradient(135deg, #e6f3ff 0%, #d1ecff 100%);
+            border-color: #4a90e2;
+            background: linear-gradient(135deg, #1a2a3a 0%, #203a4a 100%);
         }
 
         .job-card.completed {
             border-color: #00b894;
-            background: linear-gradient(135deg, #e6fff9 0%, #d1ffed 100%);
+            background: linear-gradient(135deg, #1a2a24 0%, #203a30 100%);
         }
 
         .job-card.cancelled {
             border-color: #636e72;
-            background: linear-gradient(135deg, #f1f2f6 0%, #e8eaed 100%);
+            background: linear-gradient(135deg, #252525 0%, #303030 100%);
         }
 
         .job-card.aborted {
-            border-color: #e84393;
-            background: linear-gradient(135deg, #ffe6f1 0%, #ffd3e8 100%);
+            border-color: #E82127;
+            background: linear-gradient(135deg, #2a1a1a 0%, #3a2020 100%);
         }
 
         .job-card.unassigned {
-            border-color: #ff7675;
-            background: linear-gradient(135deg, #ffecec 0%, #ffdada 100%);
+            border-color: #E82127;
+            background: linear-gradient(135deg, #2a1a1a 0%, #3a1e1e 100%);
         }
 
         .job-header {
@@ -306,7 +309,7 @@
         .job-ref {
             font-weight: bold;
             font-size: 1.1em;
-            color: #2d3436;
+            color: #f5f5f5;
         }
 
         .job-status {
@@ -317,12 +320,12 @@
             text-transform: uppercase;
         }
 
-        .job-status.on-route { background: #fdcb6e; color: #2d3436; }
-        .job-status.in-progress { background: #74b9ff; color: white; }
+        .job-status.on-route { background: #ffd700; color: #1a1a1a; }
+        .job-status.in-progress { background: #4a90e2; color: white; }
         .job-status.completed { background: #00b894; color: white; }
         .job-status.cancelled { background: #636e72; color: white; }
-        .job-status.aborted { background: #e84393; color: white; }
-        .job-status.unassigned { background: #ff7675; color: white; }
+        .job-status.aborted { background: #E82127; color: white; }
+        .job-status.unassigned { background: #E82127; color: white; }
 
         .job-details {
             margin-bottom: 10px;
@@ -331,26 +334,27 @@
         .job-detail {
             margin-bottom: 5px;
             font-size: 0.9em;
+            color: #d0d0d0;
         }
 
         .job-detail strong {
-            color: #2d3436;
+            color: #f5f5f5;
         }
 
         .status-menu {
             position: absolute;
-            background: white;
+            background: #2a2a2a;
             border-radius: 8px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
             padding: 10px;
             z-index: 1000;
-            border: 1px solid #e0e6ed;
+            border: 1px solid #3a3a3a;
             min-width: 200px; 
         }
 
         .menu-divider {
             height: 1px;
-            background-color: #e0e6ed;
+            background-color: #3a3a3a;
             margin: 5px 0;
         }
 
@@ -361,10 +365,12 @@
             margin-bottom: 5px;
             transition: background 0.2s ease;
             font-size: 0.9em;
+            color: #d0d0d0;
         }
 
         .status-option:hover {
-            background: #f8f9ff;
+            background: #3a3a3a;
+            color: #E82127;
         }
 
         .status-option:last-child {
@@ -375,13 +381,13 @@
             text-align: center;
             padding: 40px;
             font-size: 1.1em;
-            color: #636e72;
+            color: #888;
         }
 
         .no-jobs {
             text-align: center;
             padding: 40px;
-            color: #636e72;
+            color: #888;
             font-style: italic;
         }
 
@@ -403,22 +409,23 @@
             width: 100%; 
             height: 100%; 
             overflow: auto; 
-            background-color: rgba(0,0,0,0.4); 
+            background-color: rgba(0,0,0,0.8); 
             padding-top: 60px;
         }
 
         .modal-content {
-            background-color: #fefefe;
+            background-color: #1a1a1a;
+            border: 1px solid #3a3a3a;
             margin: 5% auto;
             padding: 20px;
             border-radius: 12px;
             width: 80%;
             max-width: 400px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 30px rgba(232, 33, 39, 0.4);
         }
 
         .close-button {
-            color: #aaa;
+            color: #888;
             float: right;
             font-size: 28px;
             font-weight: bold;
@@ -426,14 +433,14 @@
 
         .close-button:hover,
         .close-button:focus {
-            color: #333;
+            color: #E82127;
             text-decoration: none;
             cursor: pointer;
         }
 
         .modal-content h2 {
-            color: #667eea;
-            border-bottom: 2px solid #e0e6ed;
+            color: #E82127;
+            border-bottom: 2px solid #3a3a3a;
             padding-bottom: 10px;
             margin-bottom: 20px;
             font-size: 1.5em;
@@ -443,6 +450,7 @@
             display: block;
             margin-bottom: 8px;
             font-weight: 600;
+            color: #d0d0d0;
         }
 
         .modal-content input[type="date"],
@@ -451,25 +459,34 @@
             padding: 10px;
             margin-bottom: 20px;
             border-radius: 8px;
-            border: 1px solid #ccc;
+            border: 1px solid #3a3a3a;
+            background: #2a2a2a;
+            color: #f5f5f5;
             box-shadow: none;
             box-sizing: border-box;
         }
 
+        .modal-content input:focus,
+        .modal-content select:focus {
+            outline: none;
+            border-color: #E82127;
+        }
+
         .modal-content button {
-            background: #667eea;
+            background: #E82127;
             color: white;
             padding: 10px 20px;
             border: none;
             border-radius: 8px;
             cursor: pointer;
             font-size: 1em;
+            font-weight: 600;
             transition: background 0.3s;
             float: right;
         }
 
         .modal-content button:hover {
-            background: #5a6ed0;
+            background: #cc1d22;
         }
 
         .form-row {
@@ -491,13 +508,15 @@
         .form-group label {
             margin-bottom: 5px;
             font-weight: 600;
-            color: #2d3436;
+            color: #d0d0d0;
         }
 
         .form-group input,
         .form-group select {
             padding: 10px;
-            border: 1px solid #dfe6e9;
+            border: 1px solid #3a3a3a;
+            background: #2a2a2a;
+            color: #f5f5f5;
             border-radius: 6px;
             font-size: 0.95em;
         }
@@ -505,8 +524,8 @@
         .form-group input:focus,
         .form-group select:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: #E82127;
+            box-shadow: 0 0 0 3px rgba(232, 33, 39, 0.2);
         }
 
         .modal-buttons {
@@ -521,11 +540,11 @@
         }
 
         .cancel-btn {
-            background: #636e72;
+            background: #3a3a3a;
         }
 
         .cancel-btn:hover {
-            background: #4a5256;
+            background: #4a4a4a;
         }
 
         #unassignedJobsList {
@@ -560,7 +579,7 @@
 
         #mapFilterBar label {
             font-weight: 600;
-            color: #2d3436;
+            color: #d0d0d0;
         }
 
         #mapFilterBar select,
@@ -568,14 +587,22 @@
             min-width: 200px;
             padding: 10px;
             border-radius: 8px;
-            border: 1px solid #ccc;
+            border: 1px solid #3a3a3a;
+            background: #2a2a2a;
+            color: #f5f5f5;
+        }
+
+        #mapFilterBar select:focus,
+        #mapFilterBar input:focus {
+            outline: none;
+            border-color: #E82127;
         }
 
         #mapContainer {
             height: 600px;
             border-radius: 12px;
             margin-top: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
 
         @media (max-width: 768px) {
@@ -619,8 +646,8 @@
 
         /* NEW: Amend Job Button Style */
         .add-amend-job-btn {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            box-shadow: 0 4px 10px rgba(245, 87, 108, 0.3);
+            background: linear-gradient(135deg, #E82127 0%, #b81920 100%);
+            box-shadow: 0 4px 10px rgba(232, 33, 39, 0.4);
             color: white;
             padding: 12px 24px;
             border: none;
@@ -633,7 +660,7 @@
 
         .add-amend-job-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(245, 87, 108, 0.4);
+            box-shadow: 0 6px 15px rgba(232, 33, 39, 0.5);
         }
     </style>
 </head>
@@ -642,7 +669,7 @@
         <div class="header-content">
             <img src="https://www.dropbox.com/scl/fi/4eilt1ka4obatkaif4ksg/Screenshot-2025-06-11-132304.png?rlkey=1puz3m5i205n2t4q9n6srfq56&st=00ujjvmz&dl=1" alt="Company Screenshot" class="header-logo">
             <h1>Job Scheduling Dashboard</h1>
-            <img src="https://www.dropbox.com/scl/fi/67vmxu3kngvgkm1mf5tcp/Stark.jpg?rlkey=5gz9fhspn3t1aiu03ksob3r2c&st=8ppqfpwr&dl=1" alt="Stark Logo" class="header-logo">
+            <img src="scl/fi/okywh3hdhi834xbhvvnnp/Tesla-symbol.jpg?rlkey=9dgjozjcowngkv8zbo1l1uiax&st=h5cxd7x3&dl=1">
         </div>
         <div class="filters">
             <div class="filter-group">
@@ -1720,5 +1747,6 @@ window.addEventListener('load', init);
 </script>
 </body>
 </html>
+
 
 
